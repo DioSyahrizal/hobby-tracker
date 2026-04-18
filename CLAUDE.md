@@ -239,26 +239,26 @@ GOOGLE_BOOKS_API_KEY=<optional>
 
 ## Build Plan — Phased Todo
 
-### Phase 0: Project setup
+### Phase 0: Project setup ✅
 
-- [ ] Init pnpm monorepo with `apps/web`, `apps/api`, `packages/shared`
-- [ ] Set up TypeScript strict mode across all packages
-- [ ] Configure shared ESLint + Prettier
-- [ ] Add `.env.example` and `.gitignore` (cover `uploads/`, `.env`, `node_modules`, `dist`)
-- [ ] Init git repo
+- [x] Init pnpm monorepo with `apps/web`, `apps/api`, `packages/shared` (+ Turborepo for task orchestration)
+- [x] Set up TypeScript strict mode across all packages (shared `tsconfig.base.json`)
+- [x] Configure shared ESLint + Prettier (ESLint 9 flat config, `strictTypeChecked` + `stylisticTypeChecked`)
+- [x] Add `.env.example` and `.gitignore` (covers `uploads/`, `.env`, `node_modules`, `dist`, `.turbo`)
+- [x] Init git repo (renamed `master` → `main`)
 
-### Phase 1: Backend foundation
+### Phase 1: Backend foundation ✅
 
-- [ ] Scaffold Fastify server with TypeScript
-- [ ] Install Drizzle + `pg` driver, configure `drizzle.config.ts`
-- [ ] Write schema for `items` and `settings` tables
-- [ ] Generate and run initial migration
-- [ ] Seed `settings` table with default row
-- [ ] Set up `fastify-type-provider-zod` for typed validation
-- [ ] Add `@fastify/cookie` and `@fastify/jwt` plugins
-- [ ] Implement auth routes (`/api/auth/login`, `/logout`, `/me`)
-- [ ] Write auth preHandler hook to protect other routes
-- [ ] Test login flow with curl/Postman
+- [x] Scaffold Fastify server with TypeScript (`tsx` for dev, `pino-pretty` logs)
+- [x] Install Drizzle + `pg` driver, configure `drizzle.config.ts`
+- [x] Write schema for `items` and `settings` tables (indexes per spec)
+- [x] Generate and run initial migration (`drizzle/0000_daily_speed.sql`)
+- [x] Seed `settings` table with default row
+- [x] Set up `fastify-type-provider-zod` for typed validation
+- [x] Add `@fastify/cookie` and `@fastify/jwt` plugins
+- [x] Implement auth routes (`/api/auth/login`, `/logout`, `/me`)
+- [x] Write auth preHandler hook to protect other routes (`app.authenticate`)
+- [x] Test login flow with curl/Postman (all 5 scenarios pass: wrong pw → 401, unauth /me → 401, login → 200 + cookie, /me with cookie → 200, logout + /me → 401)
 
 ### Phase 2: Core CRUD
 

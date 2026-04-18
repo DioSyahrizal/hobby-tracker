@@ -11,6 +11,8 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/*.config.js',
       '**/*.config.mjs',
+      '**/drizzle.config.ts',
+      '**/drizzle/**',
     ],
   },
   js.configs.recommended,
@@ -22,6 +24,11 @@ export default tseslint.config(
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+    rules: {
+      // Fastify plugins and route handlers use async signatures by convention,
+      // even when nothing is awaited — plugin registration expects Promise<void>.
+      '@typescript-eslint/require-await': 'off',
     },
   },
   prettier,
