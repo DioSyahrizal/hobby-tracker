@@ -2,7 +2,15 @@
   "permissions": {
     "allow": [
       "Bash(pnpm --version)",
-      "Bash(pnpm format:check)"
+      "Bash(pnpm format:check)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm lint *)",
+      "Bash(curl -s -o /dev/null -w 'HTTP %{http_code}\\\\n' -b /tmp/c.txt -X POST http://localhost:3000/api/items -H 'Content-Type: application/json' -d '{\"type\":\"game\",\"title\":\"G1\",\"status\":\"active\"}')",
+      "Bash(curl -s -o /dev/null -w 'HTTP %{http_code}\\\\n' -b /tmp/c.txt -X POST http://localhost:3000/api/items -H 'Content-Type: application/json' -d '{\"type\":\"game\",\"title\":\"G2\",\"status\":\"active\"}')",
+      "Bash(curl -s -o /dev/null -w 'HTTP %{http_code}\\\\n' -b /tmp/c.txt -X POST http://localhost:3000/api/items -H 'Content-Type: application/json' -d '{\"type\":\"game\",\"title\":\"G3\",\"status\":\"active\"}')",
+      "Bash(curl -s -w '\\\\nHTTP %{http_code}\\\\n' -b /tmp/c.txt -X POST http://localhost:3000/api/items -H 'Content-Type: application/json' -d '{\"type\":\"game\",\"title\":\"G4\",\"status\":\"active\"}')",
+      "Bash(curl -s -o /dev/null -w 'HTTP %{http_code}\\\\n' -b /tmp/c.txt -X POST 'http://localhost:3000/api/items?force=true' -H 'Content-Type: application/json' -d '{\"type\":\"game\",\"title\":\"G4\",\"status\":\"active\"}')",
+      "Bash(pnpm tsx *)"
     ]
   }
 }

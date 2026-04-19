@@ -52,7 +52,8 @@ export const items = pgTable(
       .default(sql`now()`),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
-      .default(sql`now()`),
+      .default(sql`now()`)
+      .$onUpdate(() => new Date()),
   },
   (t) => [
     index('items_type_status_idx').on(t.type, t.status),
@@ -70,7 +71,8 @@ export const settings = pgTable('settings', {
   theme: text('theme').notNull().default('system'),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
-    .default(sql`now()`),
+    .default(sql`now()`)
+    .$onUpdate(() => new Date()),
 });
 
 export type Item = typeof items.$inferSelect;

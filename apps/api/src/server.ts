@@ -1,5 +1,6 @@
-import Fastify from 'fastify';
+import Fastify, { type FastifyError } from 'fastify';
 import {
+  hasZodFastifySchemaValidationErrors,
   serializerCompiler,
   validatorCompiler,
   type ZodTypeProvider,
@@ -7,6 +8,8 @@ import {
 import { env } from './config/env.js';
 import { authPlugin } from './plugins/auth.js';
 import { authRoutes } from './routes/auth.js';
+import { itemsRoutes } from './routes/items.js';
+import { settingsRoutes } from './routes/settings.js';
 
 export async function buildApp() {
   const app = Fastify({
@@ -23,8 +26,38 @@ export async function buildApp() {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-argument -- upstream type uses $ZodType from zod/v4/core which typescript-eslint can't fully resolve; tsc accepts it
   app.setSerializerCompiler(serializerCompiler);
 
+  // Standardize error response shape: { error: { code, message, details? } }
+  app.setErrorHandler((error: FastifyError, req, reply) => {
+    if (hasZodFastifySchemaValidationErrors(error)) {
+      return reply.code(400).send({
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Request failed validation',
+          details: error.validation,
+        },
+      });
+    }
+
+    const statusCode = error.statusCode ?? 500;
+    if (statusCode >= 500) {
+      req.log.error(error);
+      return reply.code(500).send({
+        error: { code: 'INTERNAL_ERROR', message: 'Internal server error' },
+      });
+    }
+
+    return reply.code(statusCode).send({
+      error: {
+        code: error.code,
+        message: error.message,
+      },
+    });
+  });
+
   await app.register(authPlugin);
   await app.register(authRoutes, { prefix: '/api/auth' });
+  await app.register(itemsRoutes, { prefix: '/api/items' });
+  await app.register(settingsRoutes, { prefix: '/api/settings' });
 
   app.get('/api/health', async () => ({ status: 'ok' }));
 

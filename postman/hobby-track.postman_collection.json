@@ -1,0 +1,1034 @@
+{
+  "info": {
+    "name": "hobby-track API",
+    "description": "End-to-end test collection for the hobby-track backend.\n\n## Setup\n\n1. Start the API: `pnpm --filter @hobby-track/api dev`\n2. (Optional) Reset DB to clean state: `pnpm --filter @hobby-track/api db:reset-dev`\n3. In Postman, ensure cookies are managed automatically (Settings → General → Automatically follow redirects: ON; cookie jar is on by default).\n4. Run requests in order — `Login` sets a cookie that all subsequent requests reuse.\n\n## Variables\n\n- `baseUrl` — defaults to `http://localhost:3000`\n- `password` — defaults to `changeme-dev-only` (change to match your `APP_PASSWORD`)\n- `itemId`, `bookId`, `wishlistBookId` — captured automatically by tests in earlier requests\n\n## Folders\n\n- **0. Auth** — login / me / logout\n- **1. Items — Create & Read** — basic CRUD reads\n- **2. Items — List Filters** — `?type`, `?status`, `?search`, `?sort`, pagination\n- **3. Items — Update & Side Effects** — verifies `lastTouchedAt`, `startedAt`, `completedAt` auto-set\n- **4. Active Limit (book limit=2)** — 409 + `?force=true` override on POST and PATCH\n- **5. Settings** — GET / PATCH / validation\n- **6. Delete** — 204 + 404 on second delete\n- **7. Auth Enforcement** — clear cookies in Postman first, then run\n\nMost requests have a `Tests` tab that asserts status code and (where useful) body shape — run with the Collection Runner to see pass/fail across the suite.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "password", "value": "changeme-dev-only", "type": "string" },
+    { "key": "itemId", "value": "", "type": "string" },
+    { "key": "bookId", "value": "", "type": "string" },
+    { "key": "wishlistBookId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "0. Auth",
+      "item": [
+        {
+          "name": "Login (sets cookie)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('returns ok:true', () => pm.expect(pm.response.json()).to.eql({ ok: true }));",
+                  "pm.test('sets auth_token cookie', () => pm.expect(pm.cookies.has('auth_token')).to.be.true);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"password\": \"{{password}}\"\n}" }
+          }
+        },
+        {
+          "name": "Me (check authenticated)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('authenticated:true', () => pm.expect(pm.response.json()).to.eql({ authenticated: true }));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+          }
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] }
+          }
+        },
+        {
+          "name": "Login again (after logout test)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"password\": \"{{password}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Items - Create & Read",
+      "item": [
+        {
+          "name": "Create wishlist game (saves itemId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('defaults: status=wishlist, priority=3', () => {",
+                  "  pm.expect(body.status).to.eql('wishlist');",
+                  "  pm.expect(body.priority).to.eql(3);",
+                  "});",
+                  "pm.test('null date side-effect fields', () => {",
+                  "  pm.expect(body.startedAt).to.be.null;",
+                  "  pm.expect(body.completedAt).to.be.null;",
+                  "  pm.expect(body.lastTouchedAt).to.be.null;",
+                  "});",
+                  "pm.collectionVariables.set('itemId', body.id);",
+                  "console.log('Saved itemId =', body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"game\",\n  \"title\": \"Final Fantasy VII Rebirth\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create active anime (auto-sets startedAt)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "const body = pm.response.json();",
+                  "pm.test('startedAt set when created as active', () => pm.expect(body.startedAt).to.not.be.null);",
+                  "pm.test('completedAt still null', () => pm.expect(body.completedAt).to.be.null);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"anime\",\n  \"title\": \"Frieren\",\n  \"status\": \"active\",\n  \"priority\": 5,\n  \"timeCommitment\": \"short\",\n  \"mentalLoad\": \"light\",\n  \"moodTags\": [\"cozy\", \"story\"],\n  \"metadata\": { \"episodes\": 28 }\n}"
+            }
+          }
+        },
+        {
+          "name": "Create gunpla (manual entry)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"gunpla\",\n  \"title\": \"RG Nu Gundam\",\n  \"priority\": 2,\n  \"notes\": \"Bought at Akiba\"\n}"
+            }
+          }
+        },
+        {
+          "name": "List all items",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('shape: items, total, limit, offset', () => {",
+                  "  pm.expect(body).to.have.all.keys('items','total','limit','offset');",
+                  "});",
+                  "pm.test('default limit=50, offset=0', () => {",
+                  "  pm.expect(body.limit).to.eql(50);",
+                  "  pm.expect(body.offset).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+          }
+        },
+        {
+          "name": "Get one (uses saved itemId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('id matches', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('itemId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get nonexistent (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+                  "pm.test('error code NOT_FOUND', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "00000000-0000-0000-0000-000000000000"]
+            }
+          }
+        },
+        {
+          "name": "Get bad uuid (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('error code VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items/not-a-uuid",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "not-a-uuid"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Items - List Filters",
+      "item": [
+        {
+          "name": "Filter by type=game",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('all returned items are games', () => body.items.forEach(i => pm.expect(i.type).to.eql('game')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items?type=game",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [{ "key": "type", "value": "game" }]
+            }
+          }
+        },
+        {
+          "name": "Filter by status=active",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.response.json().items.forEach(i => pm.expect(i.status).to.eql('active'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items?status=active",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [{ "key": "status", "value": "active" }]
+            }
+          }
+        },
+        {
+          "name": "Search (case-insensitive)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const titles = pm.response.json().items.map(i => i.title.toLowerCase());",
+                  "pm.test('returns Frieren', () => pm.expect(titles).to.include('frieren'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items?search=FRIE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [{ "key": "search", "value": "FRIE" }]
+            }
+          }
+        },
+        {
+          "name": "Sort by priority desc",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const ps = pm.response.json().items.map(i => i.priority);",
+                  "pm.test('non-increasing priorities', () => {",
+                  "  for (let i = 1; i < ps.length; i++) pm.expect(ps[i]).to.be.at.most(ps[i-1]);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items?sort=priority",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [{ "key": "sort", "value": "priority" }]
+            }
+          }
+        },
+        {
+          "name": "Sort by title asc",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items?sort=title",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [{ "key": "sort", "value": "title" }]
+            }
+          }
+        },
+        {
+          "name": "Sort by last_touched desc",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items?sort=last_touched",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [{ "key": "sort", "value": "last_touched" }]
+            }
+          }
+        },
+        {
+          "name": "Pagination (limit=2, offset=0)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('returns at most 2', () => pm.expect(body.items.length).to.be.at.most(2));",
+                  "pm.test('limit echoes 2', () => pm.expect(body.limit).to.eql(2));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items?limit=2&offset=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [
+                { "key": "limit", "value": "2" },
+                { "key": "offset", "value": "0" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Limit too high (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items?limit=200",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [{ "key": "limit", "value": "200" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Items - Update & Side Effects",
+      "item": [
+        {
+          "name": "PATCH currentProgress (sets lastTouchedAt)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('lastTouchedAt now set', () => pm.expect(body.lastTouchedAt).to.not.be.null);",
+                  "pm.test('progress saved', () => pm.expect(body.currentProgress).to.eql('Gongaga Region'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"currentProgress\": \"Gongaga Region\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH status=active (sets startedAt)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('status active', () => pm.expect(body.status).to.eql('active'));",
+                  "pm.test('startedAt set', () => pm.expect(body.startedAt).to.not.be.null);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH status=paused (startedAt unchanged)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('status paused', () => pm.expect(pm.response.json().status).to.eql('paused'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"paused\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH re-activate (startedAt still unchanged)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH complete + rating (sets completedAt)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('status completed', () => pm.expect(body.status).to.eql('completed'));",
+                  "pm.test('completedAt set', () => pm.expect(body.completedAt).to.not.be.null);",
+                  "pm.test('rating saved', () => pm.expect(body.rating).to.eql(9));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\",\n  \"rating\": 9\n}" }
+          }
+        },
+        {
+          "name": "PATCH invalid rating (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"rating\": 11\n}" }
+          }
+        },
+        {
+          "name": "PATCH nonexistent (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "00000000-0000-0000-0000-000000000000"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"x\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Active Limit (book limit=2)",
+      "item": [
+        {
+          "name": "Create active book A (1/2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book A\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Create active book B (2/2)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book B\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Create active book C (409 ACTIVE_LIMIT_EXCEEDED)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+                  "const err = pm.response.json().error;",
+                  "pm.test('code ACTIVE_LIMIT_EXCEEDED', () => pm.expect(err.code).to.eql('ACTIVE_LIMIT_EXCEEDED'));",
+                  "pm.test('details report current/limit', () => {",
+                  "  pm.expect(err.details.type).to.eql('book');",
+                  "  pm.expect(err.details.currentActiveCount).to.eql(2);",
+                  "  pm.expect(err.details.limit).to.eql(2);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book C\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Create active book C with ?force=true (saves bookId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('bookId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items?force=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items"],
+              "query": [{ "key": "force", "value": "true" }]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book C\",\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "Create wishlist book D (saves wishlistBookId)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set('wishlistBookId', pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book D\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH wishlist book D to active (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 Conflict', () => pm.response.to.have.status(409));",
+                  "pm.test('code ACTIVE_LIMIT_EXCEEDED', () => pm.expect(pm.response.json().error.code).to.eql('ACTIVE_LIMIT_EXCEEDED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{wishlistBookId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{wishlistBookId}}"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH wishlist book D to active with ?force=true (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{wishlistBookId}}?force=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{wishlistBookId}}"],
+              "query": [{ "key": "force", "value": "true" }]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Settings",
+      "item": [
+        {
+          "name": "GET settings (defaults)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('shape', () => pm.expect(body).to.include.keys('id','activeLimitGame','activeLimitAnime','activeLimitBook','activeLimitGunpla','theme','updatedAt'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] }
+          }
+        },
+        {
+          "name": "PATCH theme + activeLimitGame",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('theme=dark', () => pm.expect(body.theme).to.eql('dark'));",
+                  "pm.test('activeLimitGame=5', () => pm.expect(body.activeLimitGame).to.eql(5));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "body": { "mode": "raw", "raw": "{\n  \"theme\": \"dark\",\n  \"activeLimitGame\": 5\n}" }
+          }
+        },
+        {
+          "name": "PATCH invalid theme (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "body": { "mode": "raw", "raw": "{\n  \"theme\": \"hot-pink\"\n}" }
+          }
+        },
+        {
+          "name": "PATCH empty (no-op, returns current)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "body": { "mode": "raw", "raw": "{}" }
+          }
+        },
+        {
+          "name": "PATCH reset to defaults",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"system\",\n  \"activeLimitGame\": 3,\n  \"activeLimitAnime\": 3,\n  \"activeLimitBook\": 2,\n  \"activeLimitGunpla\": 5\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Delete",
+      "item": [
+        {
+          "name": "DELETE saved itemId (204)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('204 No Content', () => pm.response.to.have.status(204));",
+                  "pm.test('empty body', () => pm.expect(pm.response.text()).to.eql(''));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            }
+          }
+        },
+        {
+          "name": "GET deleted itemId (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE again (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "items", "{{itemId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Auth Enforcement (clear cookies first)",
+      "description": "Before running this folder, clear cookies in Postman (Cookies icon next to Send → manage cookies → delete the localhost auth_token entry).",
+      "item": [
+        {
+          "name": "GET items without cookie (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('code UNAUTHORIZED', () => pm.expect(pm.response.json().error.code).to.eql('UNAUTHORIZED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+          }
+        },
+        {
+          "name": "GET settings without cookie (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] }
+          }
+        },
+        {
+          "name": "Login (correct password) — recovers",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"password\": \"{{password}}\"\n}" }
+          }
+        },
+        {
+          "name": "Login (wrong password) — 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('code INVALID_PASSWORD', () => pm.expect(pm.response.json().error.code).to.eql('INVALID_PASSWORD'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"password\": \"definitely-not-the-password\"\n}" }
+          }
+        }
+      ]
+    }
+  ]
+}

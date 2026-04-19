@@ -260,15 +260,19 @@ GOOGLE_BOOKS_API_KEY=<optional>
 - [x] Write auth preHandler hook to protect other routes (`app.authenticate`)
 - [x] Test login flow with curl/Postman (all 5 scenarios pass: wrong pw → 401, unauth /me → 401, login → 200 + cookie, /me with cookie → 200, logout + /me → 401)
 
-### Phase 2: Core CRUD
+### Phase 2: Core CRUD ✅
 
-- [ ] Shared Zod schemas for `Item`, `ItemCreate`, `ItemUpdate` in `packages/shared`
-- [ ] `GET /api/items` with query filters (type, status, search, sort)
-- [ ] `POST /api/items` (validates active limit per type — return 409 with details on breach, let client decide to proceed with `?force=true`)
-- [ ] `GET /api/items/:id`
-- [ ] `PATCH /api/items/:id` (auto-update `last_touched_at` on progress change, `started_at` on first `active`, `completed_at` on `completed`)
-- [ ] `DELETE /api/items/:id`
-- [ ] Settings routes (`GET`, `PATCH`)
+- [x] Shared Zod schemas for `Item`, `ItemCreate`, `ItemUpdate` in `packages/shared` (`itemSchema`, `itemCreateSchema`, `itemUpdateSchema`, `itemListQuerySchema`, `forceQuerySchema`, `activeLimitErrorSchema`; uses `.nullish()` for optional create/update fields, pure `.nullable()` for output)
+- [x] `GET /api/items` with query filters (type, status, search via `ilike`, sort: recent|priority|title|last_touched, pagination via limit/offset, `z.coerce.number()` for query strings)
+- [x] `POST /api/items` (validates active limit per type — returns 409 with `ACTIVE_LIMIT_EXCEEDED` + `{type, currentActiveCount, limit}`; client can override with `?force=true`)
+- [x] `GET /api/items/:id`
+- [x] `PATCH /api/items/:id` (auto-updates `last_touched_at` on progress change, `started_at` on first transition to `active`, `completed_at` on first transition to `completed`; same active-limit guard with `?force=true` override on activation)
+- [x] `DELETE /api/items/:id`
+- [x] Settings routes (`GET`, `PATCH` — no-op if patch body is empty)
+- [x] Discriminated-union service results (`{kind: 'ok' | 'not_found' | 'active_limit_exceeded'}`) so route handlers stay HTTP-thin
+- [x] Date serialization helpers (`serializeItem`, `serializeSettings`) bridging Drizzle `Date` → Zod `z.iso.datetime()` strings
+- [x] DEV-only reset script (`pnpm db:reset-dev`) to wipe items + reset settings before Postman runs
+- [x] Postman collection at `postman/hobby-track.postman_collection.json` covering auth, CRUD, filters, side effects, active limits, settings, delete, and auth enforcement
 
 ### Phase 3: External API integrations
 
