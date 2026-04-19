@@ -6,9 +6,11 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import { env } from './config/env.js';
+import { AppError } from './lib/errors.js';
 import { authPlugin } from './plugins/auth.js';
 import { authRoutes } from './routes/auth.js';
 import { itemsRoutes } from './routes/items.js';
+import { searchRoutes } from './routes/search.js';
 import { settingsRoutes } from './routes/settings.js';
 
 export async function buildApp() {
@@ -38,6 +40,20 @@ export async function buildApp() {
       });
     }
 
+    // Intentional, typed errors thrown by services (e.g. UPSTREAM_ERROR from
+    // an external-API client). Expose code+message verbatim, even at 5xx —
+    // the AppError contract is "this is meant to be seen by the client."
+    if (error instanceof AppError) {
+      if (error.statusCode >= 500) req.log.warn(error);
+      return reply.code(error.statusCode).send({
+        error: {
+          code: error.code,
+          message: error.message,
+          ...(error.details !== undefined ? { details: error.details } : {}),
+        },
+      });
+    }
+
     const statusCode = error.statusCode ?? 500;
     if (statusCode >= 500) {
       req.log.error(error);
@@ -57,6 +73,7 @@ export async function buildApp() {
   await app.register(authPlugin);
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(itemsRoutes, { prefix: '/api/items' });
+  await app.register(searchRoutes, { prefix: '/api/search' });
   await app.register(settingsRoutes, { prefix: '/api/settings' });
 
   app.get('/api/health', async () => ({ status: 'ok' }));

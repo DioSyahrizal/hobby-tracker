@@ -5,11 +5,31 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
-    { "key": "password", "value": "changeme-dev-only", "type": "string" },
-    { "key": "itemId", "value": "", "type": "string" },
-    { "key": "bookId", "value": "", "type": "string" },
-    { "key": "wishlistBookId", "value": "", "type": "string" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "changeme-dev-only",
+      "type": "string"
+    },
+    {
+      "key": "itemId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "wishlistBookId",
+      "value": "",
+      "type": "string"
+    }
   ],
   "item": [
     {
@@ -32,9 +52,27 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
-            "body": { "mode": "raw", "raw": "{\n  \"password\": \"{{password}}\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{password}}\"\n}"
+            }
           }
         },
         {
@@ -53,7 +91,17 @@
           ],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api", "auth", "me"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
+            }
           }
         },
         {
@@ -63,13 +111,25 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api", "auth", "logout"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
           }
         },
         {
@@ -79,15 +139,35 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
-            "body": { "mode": "raw", "raw": "{\n  \"password\": \"{{password}}\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{password}}\"\n}"
+            }
           }
         }
       ]
@@ -122,8 +202,22 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"type\": \"game\",\n  \"title\": \"Final Fantasy VII Rebirth\"\n}"
@@ -148,8 +242,22 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"type\": \"anime\",\n  \"title\": \"Frieren\",\n  \"status\": \"active\",\n  \"priority\": 5,\n  \"timeCommitment\": \"short\",\n  \"mentalLoad\": \"light\",\n  \"moodTags\": [\"cozy\", \"story\"],\n  \"metadata\": { \"episodes\": 28 }\n}"
@@ -163,14 +271,30 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));"]
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"type\": \"gunpla\",\n  \"title\": \"RG Nu Gundam\",\n  \"priority\": 2,\n  \"notes\": \"Bought at Akiba\"\n}"
@@ -200,7 +324,16 @@
           ],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            }
           }
         },
         {
@@ -221,8 +354,14 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             }
           }
         },
@@ -244,8 +383,14 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "00000000-0000-0000-0000-000000000000"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "00000000-0000-0000-0000-000000000000"
+              ]
             }
           }
         },
@@ -267,8 +412,14 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items/not-a-uuid",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "not-a-uuid"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "not-a-uuid"
+              ]
             }
           }
         }
@@ -296,9 +447,19 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items?type=game",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
-              "query": [{ "key": "type", "value": "game" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "game"
+                }
+              ]
             }
           }
         },
@@ -320,9 +481,19 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items?status=active",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
-              "query": [{ "key": "status", "value": "active" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "active"
+                }
+              ]
             }
           }
         },
@@ -345,9 +516,19 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items?search=FRIE",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
-              "query": [{ "key": "search", "value": "FRIE" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "FRIE"
+                }
+              ]
             }
           }
         },
@@ -372,9 +553,19 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items?sort=priority",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
-              "query": [{ "key": "sort", "value": "priority" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "priority"
+                }
+              ]
             }
           }
         },
@@ -384,9 +575,19 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items?sort=title",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
-              "query": [{ "key": "sort", "value": "title" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "title"
+                }
+              ]
             }
           }
         },
@@ -396,9 +597,19 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items?sort=last_touched",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
-              "query": [{ "key": "sort", "value": "last_touched" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "sort",
+                  "value": "last_touched"
+                }
+              ]
             }
           }
         },
@@ -422,11 +633,22 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items?limit=2&offset=0",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
               "query": [
-                { "key": "limit", "value": "2" },
-                { "key": "offset", "value": "0" }
+                {
+                  "key": "limit",
+                  "value": "2"
+                },
+                {
+                  "key": "offset",
+                  "value": "0"
+                }
               ]
             }
           }
@@ -438,7 +660,9 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"]
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
               }
             }
           ],
@@ -446,9 +670,19 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items?limit=200",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
-              "query": [{ "key": "limit", "value": "200" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "200"
+                }
+              ]
             }
           }
         }
@@ -475,13 +709,27 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"currentProgress\": \"Gongaga Region\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentProgress\": \"Gongaga Region\"\n}"
+            }
           }
         },
         {
@@ -502,13 +750,27 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            }
           }
         },
         {
@@ -527,26 +789,54 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"paused\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"paused\"\n}"
+            }
           }
         },
         {
           "name": "PATCH re-activate (startedAt still unchanged)",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            }
           }
         },
         {
@@ -568,13 +858,27 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"completed\",\n  \"rating\": 9\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"completed\",\n  \"rating\": 9\n}"
+            }
           }
         },
         {
@@ -584,19 +888,35 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"]
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
               }
             }
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"rating\": 11\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 11\n}"
+            }
           }
         },
         {
@@ -606,19 +926,35 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"]
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+                ]
               }
             }
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/00000000-0000-0000-0000-000000000000",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "00000000-0000-0000-0000-000000000000"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "00000000-0000-0000-0000-000000000000"
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"title\": \"x\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"x\"\n}"
+            }
           }
         }
       ]
@@ -633,15 +969,34 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));"]
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
-            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book A\",\n  \"status\": \"active\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book A\",\n  \"status\": \"active\"\n}"
+            }
           }
         },
         {
@@ -651,15 +1006,34 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));"]
+                "exec": [
+                  "pm.test('201 Created', () => pm.response.to.have.status(201));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
-            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book B\",\n  \"status\": \"active\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book B\",\n  \"status\": \"active\"\n}"
+            }
           }
         },
         {
@@ -684,9 +1058,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
-            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book C\",\n  \"status\": \"active\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book C\",\n  \"status\": \"active\"\n}"
+            }
           }
         },
         {
@@ -705,14 +1096,32 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items?force=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items"],
-              "query": [{ "key": "force", "value": "true" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ],
+              "query": [
+                {
+                  "key": "force",
+                  "value": "true"
+                }
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book C\",\n  \"status\": \"active\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book C\",\n  \"status\": \"active\"\n}"
+            }
           }
         },
         {
@@ -731,9 +1140,26 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] },
-            "body": { "mode": "raw", "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book D\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"book\",\n  \"title\": \"Book D\"\n}"
+            }
           }
         },
         {
@@ -752,13 +1178,27 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/{{wishlistBookId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{wishlistBookId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{wishlistBookId}}"
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            }
           }
         },
         {
@@ -768,20 +1208,41 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
               }
             }
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/items/{{wishlistBookId}}?force=true",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{wishlistBookId}}"],
-              "query": [{ "key": "force", "value": "true" }]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{wishlistBookId}}"
+              ],
+              "query": [
+                {
+                  "key": "force",
+                  "value": "true"
+                }
+              ]
             },
-            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\"\n}" }
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"active\"\n}"
+            }
           }
         }
       ]
@@ -806,7 +1267,16 @@
           ],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings"
+              ]
+            }
           }
         },
         {
@@ -827,9 +1297,26 @@
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
-            "body": { "mode": "raw", "raw": "{\n  \"theme\": \"dark\",\n  \"activeLimitGame\": 5\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"dark\",\n  \"activeLimitGame\": 5\n}"
+            }
           }
         },
         {
@@ -839,15 +1326,34 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));"]
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));"
+                ]
               }
             }
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
-            "body": { "mode": "raw", "raw": "{\n  \"theme\": \"hot-pink\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": \"hot-pink\"\n}"
+            }
           }
         },
         {
@@ -857,23 +1363,56 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
               }
             }
           ],
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
-            "body": { "mode": "raw", "raw": "{}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
           }
         },
         {
           "name": "PATCH reset to defaults",
           "request": {
             "method": "PATCH",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings"
+              ]
+            },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"theme\": \"system\",\n  \"activeLimitGame\": 3,\n  \"activeLimitAnime\": 3,\n  \"activeLimitBook\": 2,\n  \"activeLimitGunpla\": 5\n}"
@@ -903,8 +1442,14 @@
             "method": "DELETE",
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             }
           }
         },
@@ -915,7 +1460,9 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"]
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+                ]
               }
             }
           ],
@@ -923,8 +1470,14 @@
             "method": "GET",
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             }
           }
         },
@@ -935,7 +1488,9 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('404 Not Found', () => pm.response.to.have.status(404));"]
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));"
+                ]
               }
             }
           ],
@@ -943,8 +1498,14 @@
             "method": "DELETE",
             "url": {
               "raw": "{{baseUrl}}/api/items/{{itemId}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "items", "{{itemId}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}"
+              ]
             }
           }
         }
@@ -970,7 +1531,16 @@
           ],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/items", "host": ["{{baseUrl}}"], "path": ["api", "items"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/items",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items"
+              ]
+            }
           }
         },
         {
@@ -980,13 +1550,24 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"]
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));"
+                ]
               }
             }
           ],
           "request": {
             "method": "GET",
-            "url": { "raw": "{{baseUrl}}/api/settings", "host": ["{{baseUrl}}"], "path": ["api", "settings"] }
+            "url": {
+              "raw": "{{baseUrl}}/api/settings",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "settings"
+              ]
+            }
           }
         },
         {
@@ -996,15 +1577,35 @@
               "listen": "test",
               "script": {
                 "type": "text/javascript",
-                "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));"]
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
-            "body": { "mode": "raw", "raw": "{\n  \"password\": \"{{password}}\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"{{password}}\"\n}"
+            }
           }
         },
         {
@@ -1023,9 +1624,301 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api", "auth", "login"] },
-            "body": { "mode": "raw", "raw": "{\n  \"password\": \"definitely-not-the-password\"\n}" }
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"definitely-not-the-password\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Search (External APIs)",
+      "description": "Phase 3: proxies to RAWG (games), Jikan (anime), Google Books (books). Auth required. Each returns { results: SearchResult[], cached: boolean }. RAWG needs RAWG_API_KEY in .env; Jikan/Google Books work without keys (Google supports an optional key for higher quotas). Cache TTL is 1h per query, so the second hit of the same q+limit returns cached:true.",
+      "item": [
+        {
+          "name": "Search anime (Jikan)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('shape: { results, cached }', () => {",
+                  "  pm.expect(body).to.have.property('results').that.is.an('array');",
+                  "  pm.expect(body).to.have.property('cached').that.is.a('boolean');",
+                  "});",
+                  "pm.test('first result is normalized', () => {",
+                  "  if (body.results.length === 0) return;",
+                  "  const r = body.results[0];",
+                  "  pm.expect(r.source).to.eql('jikan');",
+                  "  pm.expect(r.type).to.eql('anime');",
+                  "  pm.expect(r.externalId).to.be.a('string');",
+                  "  pm.expect(r.title).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/anime?q=cowboy bebop&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "search",
+                "anime"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cowboy bebop"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search anime again (expect cached:true)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('cached === true', () => pm.expect(pm.response.json().cached).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/anime?q=cowboy bebop&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "search",
+                "anime"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "cowboy bebop"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search books (Google Books)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Google Books occasionally returns 503 — accept either 200 (success) or 502 (upstream down).",
+                  "pm.test('200 or 502 (Google Books occasional outage)', () => pm.expect([200,502]).to.include(pm.response.code));",
+                  "if (pm.response.code === 200) {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.property('results').that.is.an('array');",
+                  "  pm.expect(body).to.have.property('cached');",
+                  "  if (body.results.length > 0) {",
+                  "    pm.expect(body.results[0].source).to.eql('gbooks');",
+                  "    pm.expect(body.results[0].type).to.eql('book');",
+                  "  }",
+                  "} else {",
+                  "  pm.expect(pm.response.json().error.code).to.eql('UPSTREAM_ERROR');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/books?q=neuromancer&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "search",
+                "books"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "neuromancer"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Search games (RAWG) — 503 if RAWG_API_KEY unset, 200 if set",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 (key set) or 503 (key unset)', () => pm.expect([200,503]).to.include(pm.response.code));",
+                  "if (pm.response.code === 503) {",
+                  "  pm.expect(pm.response.json().error.code).to.eql('UPSTREAM_NOT_CONFIGURED');",
+                  "} else {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body.results).to.be.an('array');",
+                  "  if (body.results.length > 0) {",
+                  "    pm.expect(body.results[0].source).to.eql('rawg');",
+                  "    pm.expect(body.results[0].type).to.eql('game');",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/games?q=hades&limit=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "search",
+                "games"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "hades"
+                },
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validation: empty q → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/anime?q=",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "search",
+                "anime"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validation: limit > 20 → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('400 Bad Request', () => pm.response.to.have.status(400));",
+                  "pm.test('VALIDATION_ERROR', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION_ERROR'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/search/anime?q=naruto&limit=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "search",
+                "anime"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "naruto"
+                },
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
           }
         }
       ]

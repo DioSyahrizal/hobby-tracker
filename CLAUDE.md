@@ -274,14 +274,17 @@ GOOGLE_BOOKS_API_KEY=<optional>
 - [x] DEV-only reset script (`pnpm db:reset-dev`) to wipe items + reset settings before Postman runs
 - [x] Postman collection at `postman/hobby-track.postman_collection.json` covering auth, CRUD, filters, side effects, active limits, settings, delete, and auth enforcement
 
-### Phase 3: External API integrations
+### Phase 3: External API integrations ✅
 
-- [ ] RAWG client — search endpoint, map response to our item shape
-- [ ] Jikan client — search endpoint, map response
-- [ ] Google Books client — search endpoint, map response
-- [ ] Expose `/api/search/{games,anime,books}` routes
-- [ ] Cache layer (in-memory LRU) to avoid hammering APIs on repeated searches
-- [ ] Handle rate limits gracefully (Jikan has 3 req/sec limit)
+- [x] RAWG client — search endpoint, mapped to normalized `SearchResult` (returns 503 `UPSTREAM_NOT_CONFIGURED` if `RAWG_API_KEY` is unset so failures are obvious during setup)
+- [x] Jikan client — no auth, prefers `title_english`, includes synopsis + episode count + score in metadata
+- [x] Google Books client — no auth required, optional `GOOGLE_BOOKS_API_KEY` for higher quotas, upgrades `http://` thumbnails to `https://`
+- [x] Routes at `/api/search/{games,anime,books}` (auth-gated, validate `?q` 1-200 chars + `?limit` 1-20, return `{ results, cached }`)
+- [x] Shared `searchResultSchema` in `packages/shared` — single normalized shape across all three sources so the frontend has one consumer
+- [x] In-memory LRU cache (`apps/api/src/lib/cache.ts`) — Map-based with insertion-order eviction, 1h TTL, per-source instance
+- [x] Rate limiter (`apps/api/src/lib/rate-limiter.ts`) — `IntervalLimiter` chains `await` so concurrent callers serialize instead of all bursting (350ms gate for Jikan = ~2.85 req/sec, under their 3 req/sec ceiling)
+- [x] Shared `fetchJson` helper (`apps/api/src/lib/http.ts`) — 10s AbortController timeout, normalizes upstream non-2xx → `AppError('UPSTREAM_ERROR', …, 502)`
+- [x] Global error handler now special-cases `AppError` so service-thrown errors expose `code`/`message` verbatim (was being swallowed by the generic 5xx → INTERNAL_ERROR branch)
 
 ### Phase 4: Image uploads (for gunpla)
 
