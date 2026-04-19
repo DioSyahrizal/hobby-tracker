@@ -11,8 +11,9 @@ build/
 .env.local
 .env.*.local
 
-# uploads (local image storage)
-uploads/
+# uploads (local image storage — contents ignored, dir tracked via .gitkeep)
+uploads/*
+!uploads/.gitkeep
 
 # OS
 .DS_Store

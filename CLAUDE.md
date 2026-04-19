@@ -286,14 +286,15 @@ GOOGLE_BOOKS_API_KEY=<optional>
 - [x] Shared `fetchJson` helper (`apps/api/src/lib/http.ts`) — 10s AbortController timeout, normalizes upstream non-2xx → `AppError('UPSTREAM_ERROR', …, 502)`
 - [x] Global error handler now special-cases `AppError` so service-thrown errors expose `code`/`message` verbatim (was being swallowed by the generic 5xx → INTERNAL_ERROR branch)
 
-### Phase 4: Image uploads (for gunpla)
+### Phase 4: Image uploads (for gunpla) ✅
 
-- [ ] `@fastify/multipart` for file upload
-- [ ] `sharp` to resize to max 1200px wide, convert to webp
-- [ ] Store in `/uploads` with UUID filename
-- [ ] `POST /api/items/:id/cover` endpoint
-- [ ] `@fastify/static` serves `/uploads/:filename`
-- [ ] File size limit (5MB), type validation (jpeg, png, webp only)
+- [x] `@fastify/multipart` for file upload (registered as a global plugin with 5MB / 1 file limits)
+- [x] `sharp` to resize to max 1200px wide (`withoutEnlargement: true`), convert to webp quality 85; `sharp` native bindings approved via `pnpm.onlyBuiltDependencies`
+- [x] Store in `uploads/` (monorepo root) with UUID filename (`<uuid>.webp`); path resolved via `import.meta.url` so it works in both `tsx` dev and compiled `dist/`
+- [x] `POST /api/items/:id/cover` endpoint — validates MIME (jpeg/png/webp), processes image, writes file, updates `cover_url` in DB, deletes previous local cover (best-effort)
+- [x] `@fastify/static` serves `GET /uploads/:filename` → `image/webp`
+- [x] File size limit (5MB enforced by multipart plugin), MIME type validation (jpeg, png, webp → 400 `INVALID_FILE_TYPE` otherwise)
+- [x] `uploads/` gitignored (`uploads/*`), `uploads/.gitkeep` tracked so the directory exists on fresh clones
 
 ### Phase 5: Frontend scaffold
 

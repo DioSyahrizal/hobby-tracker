@@ -29,6 +29,11 @@
       "key": "wishlistBookId",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "coverUrl",
+      "value": "",
+      "type": "string"
     }
   ],
   "item": [
@@ -1918,6 +1923,216 @@
                   "value": "50"
                 }
               ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Cover Upload",
+      "description": "Phase 4: POST /api/items/:id/cover — multipart/form-data, single file field (any name). sharp resizes to ≤1200px wide and converts to webp. Old local cover is deleted on re-upload. GET /uploads/:filename serves the result. Run folder 1 first so itemId is populated.",
+      "item": [
+        {
+          "name": "Upload cover (valid jpeg) → 200",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('coverUrl set to /uploads/...webp', () => {",
+                  "  pm.expect(body.coverUrl).to.match(/^/uploads/.+.webp$/);",
+                  "});",
+                  "pm.collectionVariables.set('coverUrl', body.coverUrl);",
+                  "console.log('Saved coverUrl =', body.coverUrl);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}/cover",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}",
+                "cover"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "cover",
+                  "type": "file",
+                  "description": "Pick any jpeg/png/webp image from your machine"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Serve uploaded file (GET /uploads/:filename) → 200 webp",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "pm.test('Content-Type is image/webp', () => {",
+                  "  pm.expect(pm.response.headers.get('content-type')).to.include('image/webp');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}{{coverUrl}}",
+              "host": [
+                "{{baseUrl}}{{coverUrl}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Re-upload replaces cover → new coverUrl",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "const old = pm.collectionVariables.get('coverUrl');",
+                  "pm.test('coverUrl changed (old file replaced)', () => {",
+                  "  pm.expect(body.coverUrl).to.not.eql(old);",
+                  "  pm.expect(body.coverUrl).to.match(/^/uploads/.+.webp$/);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}/cover",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}",
+                "cover"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "cover",
+                  "type": "file",
+                  "description": "Pick any jpeg/png/webp image from your machine"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload to non-existent item → 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+                  "pm.test('NOT_FOUND code', () => pm.expect(pm.response.json().error.code).to.eql('NOT_FOUND'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/00000000-0000-0000-0000-000000000000/cover",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "00000000-0000-0000-0000-000000000000",
+                "cover"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "cover",
+                  "type": "file",
+                  "description": "any image"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload without auth → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 Unauthorized', () => pm.response.to.have.status(401));",
+                  "pm.test('UNAUTHORIZED code', () => pm.expect(pm.response.json().error.code).to.eql('UNAUTHORIZED'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/items/{{itemId}}/cover",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "items",
+                "{{itemId}}",
+                "cover"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "cover",
+                  "type": "file",
+                  "description": "any image"
+                }
+              ]
+            },
+            "auth": {
+              "type": "noauth"
             }
           }
         }

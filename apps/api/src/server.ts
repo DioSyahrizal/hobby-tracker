@@ -1,3 +1,4 @@
+import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyError } from 'fastify';
 import {
   hasZodFastifySchemaValidationErrors,
@@ -7,8 +8,11 @@ import {
 } from 'fastify-type-provider-zod';
 import { env } from './config/env.js';
 import { AppError } from './lib/errors.js';
+import { UPLOADS_DIR } from './lib/uploads.js';
 import { authPlugin } from './plugins/auth.js';
+import { multipartPlugin } from './plugins/multipart.js';
 import { authRoutes } from './routes/auth.js';
+import { coverRoutes } from './routes/cover.js';
 import { itemsRoutes } from './routes/items.js';
 import { searchRoutes } from './routes/search.js';
 import { settingsRoutes } from './routes/settings.js';
@@ -70,9 +74,18 @@ export async function buildApp() {
     });
   });
 
+  // Static file serving for uploaded images (/uploads/:filename)
+  await app.register(fastifyStatic, {
+    root: UPLOADS_DIR,
+    prefix: '/uploads/',
+    decorateReply: false,
+  });
+
   await app.register(authPlugin);
+  await app.register(multipartPlugin);
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(itemsRoutes, { prefix: '/api/items' });
+  await app.register(coverRoutes, { prefix: '/api/items' });
   await app.register(searchRoutes, { prefix: '/api/search' });
   await app.register(settingsRoutes, { prefix: '/api/settings' });
 
