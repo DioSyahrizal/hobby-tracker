@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppTonightIndexRouteImport } from './routes/_app.tonight.index'
 import { Route as AppSettingsIndexRouteImport } from './routes/_app.settings.index'
 import { Route as AppItemsIndexRouteImport } from './routes/_app.items.index'
 
@@ -27,6 +28,11 @@ const AppRoute = AppRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTonightIndexRoute = AppTonightIndexRouteImport.update({
+  id: '/tonight/',
+  path: '/tonight/',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsIndexRoute = AppSettingsIndexRouteImport.update({
@@ -45,12 +51,14 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/items/': typeof AppItemsIndexRoute
   '/settings/': typeof AppSettingsIndexRoute
+  '/tonight/': typeof AppTonightIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/': typeof AppIndexRoute
   '/items': typeof AppItemsIndexRoute
   '/settings': typeof AppSettingsIndexRoute
+  '/tonight': typeof AppTonightIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -59,12 +67,13 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/_app/items/': typeof AppItemsIndexRoute
   '/_app/settings/': typeof AppSettingsIndexRoute
+  '/_app/tonight/': typeof AppTonightIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/items/' | '/settings/'
+  fullPaths: '/' | '/login' | '/items/' | '/settings/' | '/tonight/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/' | '/items' | '/settings'
+  to: '/login' | '/' | '/items' | '/settings' | '/tonight'
   id:
     | '__root__'
     | '/_app'
@@ -72,6 +81,7 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/_app/items/'
     | '/_app/settings/'
+    | '/_app/tonight/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -102,6 +112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/tonight/': {
+      id: '/_app/tonight/'
+      path: '/tonight'
+      fullPath: '/tonight/'
+      preLoaderRoute: typeof AppTonightIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/settings/': {
       id: '/_app/settings/'
       path: '/settings'
@@ -123,12 +140,14 @@ interface AppRouteChildren {
   AppIndexRoute: typeof AppIndexRoute
   AppItemsIndexRoute: typeof AppItemsIndexRoute
   AppSettingsIndexRoute: typeof AppSettingsIndexRoute
+  AppTonightIndexRoute: typeof AppTonightIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppIndexRoute: AppIndexRoute,
   AppItemsIndexRoute: AppItemsIndexRoute,
   AppSettingsIndexRoute: AppSettingsIndexRoute,
+  AppTonightIndexRoute: AppTonightIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

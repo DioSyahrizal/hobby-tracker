@@ -324,14 +324,21 @@ GOOGLE_BOOKS_API_KEY=<optional>
 - [x] Empty states: "no items" + "no matches" variants
 - [x] Build + typecheck + ESLint clean
 
-### Phase 7: The tonight feature
+### Phase 7: The tonight feature ✅
 
-- [ ] Backend: `POST /api/recommend` — scoring function
-  - Score = priority_weight + time_fit + load_fit + mood_fit + staleness_bonus
-  - Return top 5 with score breakdown
-- [ ] Frontend: "Tonight" page with input form (time, energy, mood)
-- [ ] Results list with score explanation
-- [ ] "Start this" button → sets status to active, navigates to detail
+- [x] `POST /api/recommend` — deterministic scoring across all active items, returns top 5
+  - `priority` 0–40: `(priority-1) * 10`
+  - `timeFit` 0–30: diff between item time_commitment and requested time (exact=30, ±1=15, ±2=5)
+  - `loadFit` 0–20: diff between item mental_load and requested energy (exact=20, ±1=10)
+  - `moodFit` 0–15: 5 pts per matching mood tag (capped); 10/7 neutral if field missing
+  - `staleness` 0–20: 15 for never started, 20 for >30 days untouched
+  - Human-readable `reasons[]` per result ("Fits your time window", "Mood match: cozy" etc.)
+- [x] Shared Zod schemas: `recommendRequestSchema`, `scoreBreakdownSchema`, `recommendResultSchema`, `recommendResponseSchema`
+- [x] Frontend "Tonight" page (`/tonight`): chip-group pickers for time/energy, mood tag toggles
+- [x] Score bar (visual) + reasons chips per result card
+- [x] "Start tonight" → activates item if not already active (with active-limit handling), then opens ItemDetailSheet inline
+- [x] "Tonight" nav link (Sparkles icon) at top of sidebar
+- [x] Build + typecheck + ESLint clean across all 3 packages
 
 ### Phase 8: Polish
 

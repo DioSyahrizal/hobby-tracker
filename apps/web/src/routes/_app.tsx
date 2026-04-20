@@ -7,6 +7,7 @@ import {
   LogOut,
   Package,
   Settings,
+  Sparkles,
   Tv2,
 } from 'lucide-react';
 import { authQueryOptions, logout } from '../lib/api';
@@ -29,6 +30,7 @@ export const Route = createFileRoute('/_app')({
 });
 
 const NAV = [
+  { to: '/tonight', label: 'Tonight', icon: Sparkles },
   { to: '/items', label: 'All items', icon: LayoutDashboard },
   { to: '/items', search: { type: 'game' }, label: 'Games', icon: Gamepad2 },
   { to: '/items', search: { type: 'anime' }, label: 'Anime', icon: Tv2 },

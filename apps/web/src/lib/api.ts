@@ -5,6 +5,8 @@ import type {
   ItemListQuery,
   ItemListResponse,
   ItemUpdate,
+  RecommendRequest,
+  RecommendResponse,
   SearchResponse,
   Settings,
   SettingsUpdate,
@@ -164,6 +166,15 @@ export async function updateSettings(data: SettingsUpdate): Promise<Settings> {
   return apiFetch<Settings>('/api/settings', {
     method: 'PATCH',
     body: JSON.stringify(data),
+  });
+}
+
+// ── Recommend ────────────────────────────────────────────────────────────────
+
+export async function getRecommendations(req: RecommendRequest): Promise<RecommendResponse> {
+  return apiFetch<RecommendResponse>('/api/recommend', {
+    method: 'POST',
+    body: JSON.stringify(req),
   });
 }
 
