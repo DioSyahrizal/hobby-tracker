@@ -1,4 +1,14 @@
 import { queryOptions } from '@tanstack/react-query';
+import type {
+  Item,
+  ItemCreate,
+  ItemListQuery,
+  ItemListResponse,
+  ItemUpdate,
+  SearchResponse,
+  Settings,
+  SettingsUpdate,
+} from '@hobby-track/shared';
 
 /**
  * Central API client for the hobby-track backend.
@@ -12,7 +22,7 @@ import { queryOptions } from '@tanstack/react-query';
  */
 
 interface ApiError {
-  error: { code: string; message: string };
+  error: { code: string; message: string; details?: unknown };
 }
 
 export class HttpError extends Error {
@@ -20,6 +30,7 @@ export class HttpError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
+    public readonly details?: unknown,
   ) {
     super(message);
     this.name = 'HttpError';
@@ -38,11 +49,7 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (!res.ok) {
     const err = body as ApiError;
-    throw new HttpError(
-      res.status,
-      err.error.code,
-      err.error.message,
-    );
+    throw new HttpError(res.status, err.error.code, err.error.message, err.error.details);
   }
 
   return body as T;
@@ -71,3 +78,109 @@ export async function login(password: string): Promise<void> {
 export async function logout(): Promise<void> {
   await apiFetch('/api/auth/logout', { method: 'POST' });
 }
+
+// ── Items ─────────────────────────────────────────────────────────────────────
+
+export const itemsQueryOptions = (params: ItemListQuery) =>
+  queryOptions({
+    queryKey: ['items', params] as const,
+    queryFn: () => {
+      const qs = new URLSearchParams();
+      if (params.type) qs.set('type', params.type);
+      if (params.status) qs.set('status', params.status);
+      if (params.search) qs.set('search', params.search);
+      if (params.sort) qs.set('sort', params.sort);
+      if (params.limit != null) qs.set('limit', String(params.limit));
+      if (params.offset != null) qs.set('offset', String(params.offset));
+      return apiFetch<ItemListResponse>(`/api/items?${qs.toString()}`);
+    },
+    staleTime: 30_000,
+  });
+
+export const itemQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: ['items', id] as const,
+    queryFn: () => apiFetch<Item>(`/api/items/${id}`),
+    staleTime: 30_000,
+  });
+
+export async function createItem(data: ItemCreate, force?: boolean): Promise<Item> {
+  const url = force ? '/api/items?force=true' : '/api/items';
+  return apiFetch<Item>(url, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateItem(
+  id: string,
+  data: ItemUpdate,
+  force?: boolean,
+): Promise<Item> {
+  const url = force ? `/api/items/${id}?force=true` : `/api/items/${id}`;
+  return apiFetch<Item>(url, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteItem(id: string): Promise<void> {
+  await apiFetch(`/api/items/${id}`, { method: 'DELETE' });
+}
+
+/** Upload a cover image for a gunpla item. Uses raw fetch — no Content-Type override. */
+export async function uploadCover(id: string, file: File): Promise<Item> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`/api/items/${id}/cover`, {
+    method: 'POST',
+    body: formData,
+    // No Content-Type header: browser sets multipart/form-data with boundary automatically
+  });
+
+  const body = (await res.json()) as Item | ApiError;
+  if (!res.ok) {
+    const err = body as ApiError;
+    throw new HttpError(res.status, err.error.code, err.error.message);
+  }
+  return body as Item;
+}
+
+// ── Settings ─────────────────────────────────────────────────────────────────
+
+export const settingsQueryOptions = queryOptions({
+  queryKey: ['settings'] as const,
+  queryFn: () => apiFetch<Settings>('/api/settings'),
+  staleTime: Infinity,
+});
+
+export async function updateSettings(data: SettingsUpdate): Promise<Settings> {
+  return apiFetch<Settings>('/api/settings', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+
+const SEARCH_ENDPOINT = {
+  game: 'games',
+  anime: 'anime',
+  book: 'books',
+} as const;
+
+export const searchQueryOptions = (
+  type: 'game' | 'anime' | 'book',
+  q: string,
+) =>
+  queryOptions({
+    queryKey: ['search', type, q] as const,
+    queryFn: () =>
+      apiFetch<SearchResponse>(
+        `/api/search/${SEARCH_ENDPOINT[type]}?q=${encodeURIComponent(q)}&limit=10`,
+      ),
+    enabled: q.trim().length >= 2,
+    staleTime: 60 * 60 * 1000, // 1h — backend caches too
+    retry: false,
+  });
