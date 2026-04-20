@@ -4,9 +4,38 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json --noEmit",
-    "dev": "tsc -p tsconfig.json --noEmit --watch",
+    "build": "vite build",
+    "dev": "vite",
     "lint": "eslint .",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@hobby-track/shared": "workspace:*",
+    "@hookform/resolvers": "^3.10.0",
+    "@radix-ui/react-label": "^2.1.3",
+    "@radix-ui/react-slot": "^1.2.0",
+    "@tanstack/react-query": "^5.74.4",
+    "@tanstack/react-query-devtools": "^5.74.4",
+    "@tanstack/react-router": "^1.114.22",
+    "@tanstack/router-devtools": "^1.114.22",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.501.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-hook-form": "^7.56.0",
+    "tailwind-merge": "^3.2.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.4",
+    "@tanstack/router-plugin": "^1.114.22",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tailwindcss": "^4.1.4",
+    "tw-animate-css": "^1.2.5",
+    "vite": "^6.3.2"
   }
 }
