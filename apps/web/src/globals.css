@@ -108,3 +108,14 @@
     @apply bg-background text-foreground font-sans antialiased;
   }
 }
+
+@layer utilities {
+  /* Hide scrollbar but keep scroll functionality */
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}

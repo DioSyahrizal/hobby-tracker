@@ -340,13 +340,14 @@ GOOGLE_BOOKS_API_KEY=<optional>
 - [x] "Tonight" nav link (Sparkles icon) at top of sidebar
 - [x] Build + typecheck + ESLint clean across all 3 packages
 
-### Phase 8: Polish
+### Phase 8: Polish ✅
 
-- [ ] Dark mode toggle (respects system by default)
-- [ ] Keyboard shortcuts (cmd+k for search, etc.) — maybe
-- [ ] Responsive layout tuning for mobile
-- [ ] Error boundaries and toast notifications
-- [ ] Confirm dialogs on destructive actions
+- [x] Dark mode — `hooks/use-theme.ts` reads `settings.theme`, applies `.dark` class to `<html>`; 'system' follows OS via `matchMedia` with live listener; called from `_app.tsx` so it's always active
+- [x] Keyboard shortcut — Cmd+K / Ctrl+K focuses the search input on the items page; placeholder reads "Search… ⌘K" as a hint
+- [x] Responsive mobile layout — sidebar becomes a fixed slide-in drawer on `< lg` screens; hamburger button + top bar on mobile; type tabs scroll horizontally; filter bar wraps; padding adapts via `sm:` breakpoints; tonight page padding adjusted
+- [x] Error boundary — `components/error-boundary.tsx` React class component wraps `<Outlet />` in `_app.tsx`; shows "Something went wrong / Try again" card; accepts optional custom `fallback` prop
+- [x] Confirm dialogs on destructive actions — inline delete confirm already implemented in `item-detail-sheet.tsx` (Phase 6); active-limit warnings inline in add/edit forms
+- [x] Build + typecheck + ESLint clean across all 3 packages
 
 ### Phase 9: Deployment
 

@@ -13,7 +13,7 @@ import {
   Search,
   Tv2,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { z } from 'zod';
 import { AddItemDialog } from '../components/add-item-dialog';
 import { ItemCard } from '../components/item-card';
@@ -145,11 +145,24 @@ function ItemsPage() {
 
   // Local state for the search input so typing is instant
   const [searchInput, setSearchInput] = useState(search.q ?? '');
+  const searchRef = useRef<HTMLInputElement>(null);
 
   // Keep local input in sync when URL changes externally (e.g. sidebar nav)
   useEffect(() => {
     setSearchInput(search.q ?? '');
   }, [search.q]);
+
+  // Cmd+K / Ctrl+K → focus search input
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => { document.removeEventListener('keydown', handler); };
+  }, []);
 
   // Debounce: push to URL 400 ms after last keystroke
   useEffect(() => {
@@ -178,10 +191,10 @@ function ItemsPage() {
   return (
     <div className="flex h-full flex-col">
       {/* ── Header bar ── */}
-      <div className="border-b border-border bg-background px-6 py-4">
+      <div className="border-b border-border bg-background px-4 py-4 sm:px-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">
+            <h1 className="font-display text-xl font-bold text-foreground sm:text-2xl">
               {search.type ? TYPE_LABEL[search.type] : 'All items'}
             </h1>
             {data && (
@@ -190,14 +203,15 @@ function ItemsPage() {
               </p>
             )}
           </div>
-          <Button onClick={() => { setAddOpen(true); }}>
+          <Button size="sm" onClick={() => { setAddOpen(true); }}>
             <Plus className="mr-2 h-4 w-4" />
-            Add item
+            <span className="hidden sm:inline">Add item</span>
+            <span className="sm:hidden">Add</span>
           </Button>
         </div>
 
-        {/* Type tabs */}
-        <div className="mt-4 flex gap-1">
+        {/* Type tabs — scrollable on small screens */}
+        <div className="mt-4 flex gap-1 overflow-x-auto pb-1 scrollbar-none">
           {TYPE_TABS.map(({ type, label, icon: Icon }) => {
             const active = search.type === type;
             return (
@@ -226,11 +240,12 @@ function ItemsPage() {
       </div>
 
       {/* ── Filters bar ── */}
-      <div className="flex items-center gap-3 border-b border-border bg-background px-6 py-3">
-        <div className="relative flex-1 max-w-xs">
+      <div className="flex flex-wrap items-center gap-2 border-b border-border bg-background px-4 py-3 sm:gap-3 sm:px-6">
+        <div className="relative min-w-0 flex-1 sm:max-w-xs">
           <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search…"
+            ref={searchRef}
+            placeholder="Search… ⌘K"
             value={searchInput}
             onChange={(e) => { setSearchInput(e.target.value); }}
             className="pl-8 h-8 text-sm"
@@ -277,7 +292,7 @@ function ItemsPage() {
       </div>
 
       {/* ── Content ── */}
-      <div className="flex-1 overflow-auto px-6 py-6">
+      <div className="flex-1 overflow-auto px-4 py-6 sm:px-6">
         {isLoading ? (
           <ItemGridSkeleton />
         ) : !data || data.items.length === 0 ? (

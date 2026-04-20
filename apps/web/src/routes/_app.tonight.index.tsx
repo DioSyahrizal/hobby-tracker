@@ -289,7 +289,7 @@ function TonightPage() {
   const isPending = recommendMutation.isPending;
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
+    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
       {/* ── Hero ── */}
       <div className="mb-8 flex items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10">
