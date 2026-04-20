@@ -42,11 +42,7 @@ export const Route = createFileRoute('/_app/items/')({
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const TYPE_TABS: Array<{
-  type: ItemType | undefined;
-  label: string;
-  icon: React.FC<{ className?: string }>;
-}> = [
+const TYPE_TABS: { type: ItemType | undefined; label: string; icon: React.FC<{ className?: string }> }[] = [
   { type: undefined, label: 'All', icon: ({ className }) => <PackageSearch className={className} /> },
   { type: 'game', label: 'Games', icon: Gamepad2 },
   { type: 'anime', label: 'Anime', icon: Tv2 },
@@ -54,7 +50,7 @@ const TYPE_TABS: Array<{
   { type: 'gunpla', label: 'Gunpla', icon: Package },
 ];
 
-const STATUS_OPTIONS: Array<{ value: ItemStatus | ''; label: string }> = [
+const STATUS_OPTIONS: { value: ItemStatus | ''; label: string }[] = [
   { value: '', label: 'All statuses' },
   { value: 'wishlist', label: 'Wishlist' },
   { value: 'active', label: 'Active' },
@@ -63,7 +59,7 @@ const STATUS_OPTIONS: Array<{ value: ItemStatus | ''; label: string }> = [
   { value: 'dropped', label: 'Dropped' },
 ];
 
-const SORT_OPTIONS: Array<{ value: ItemSort; label: string }> = [
+const SORT_OPTIONS: { value: ItemSort; label: string }[] = [
   { value: 'recent', label: 'Recently added' },
   { value: 'priority', label: 'Priority' },
   { value: 'title', label: 'A → Z' },
@@ -147,24 +143,24 @@ function ItemsPage() {
   const [addOpen, setAddOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-  // Local state for search input so typing doesn't wait for router round-trip
+  // Local state for the search input so typing is instant
   const [searchInput, setSearchInput] = useState(search.q ?? '');
 
-  // Keep local input in sync when URL changes externally
+  // Keep local input in sync when URL changes externally (e.g. sidebar nav)
   useEffect(() => {
     setSearchInput(search.q ?? '');
   }, [search.q]);
 
-  // Debounce: push to URL 400ms after last keystroke
+  // Debounce: push to URL 400 ms after last keystroke
   useEffect(() => {
     const t = setTimeout(() => {
       void navigate({
-        search: (prev) => ({ ...prev, q: searchInput || undefined }),
+        search: (prev) => ({ ...prev, q: searchInput !== '' ? searchInput : undefined }),
         replace: true,
       });
     }, 400);
-    return () => clearTimeout(t);
-  }, [searchInput]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { clearTimeout(t); };
+  }, [searchInput, navigate]);
 
   const { data, isLoading } = useQuery(
     itemsQueryOptions({
@@ -194,7 +190,7 @@ function ItemsPage() {
               </p>
             )}
           </div>
-          <Button onClick={() => setAddOpen(true)}>
+          <Button onClick={() => { setAddOpen(true); }}>
             <Plus className="mr-2 h-4 w-4" />
             Add item
           </Button>
@@ -208,12 +204,12 @@ function ItemsPage() {
               <button
                 key={label}
                 type="button"
-                onClick={() =>
+                onClick={() => {
                   void navigate({
                     search: (prev) => ({ ...prev, type, q: undefined, status: undefined }),
                     replace: true,
-                  })
-                }
+                  });
+                }}
                 className={[
                   'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                   active
@@ -236,22 +232,23 @@ function ItemsPage() {
           <Input
             placeholder="Search…"
             value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
+            onChange={(e) => { setSearchInput(e.target.value); }}
             className="pl-8 h-8 text-sm"
           />
         </div>
 
         <select
           value={search.status ?? ''}
-          onChange={(e) =>
+          onChange={(e) => {
+            const val = e.target.value;
             void navigate({
               search: (prev) => ({
                 ...prev,
-                status: (e.target.value as ItemStatus) || undefined,
+                status: val !== '' ? (val as ItemStatus) : undefined,
               }),
               replace: true,
-            })
-          }
+            });
+          }}
           className={selectClass}
         >
           {STATUS_OPTIONS.map((o) => (
@@ -263,12 +260,12 @@ function ItemsPage() {
 
         <select
           value={search.sort ?? 'recent'}
-          onChange={(e) =>
+          onChange={(e) => {
             void navigate({
               search: (prev) => ({ ...prev, sort: e.target.value as ItemSort }),
               replace: true,
-            })
-          }
+            });
+          }}
           className={selectClass}
         >
           {SORT_OPTIONS.map((o) => (
@@ -283,19 +280,19 @@ function ItemsPage() {
       <div className="flex-1 overflow-auto px-6 py-6">
         {isLoading ? (
           <ItemGridSkeleton />
-        ) : data?.items.length === 0 ? (
+        ) : !data || data.items.length === 0 ? (
           <EmptyState
             type={search.type}
             hasFilters={hasFilters}
-            onAdd={() => setAddOpen(true)}
+            onAdd={() => { setAddOpen(true); }}
           />
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {data?.items.map((item) => (
+            {data.items.map((item) => (
               <ItemCard
                 key={item.id}
                 item={item}
-                onClick={() => setSelectedItem(item)}
+                onClick={() => { setSelectedItem(item); }}
               />
             ))}
           </div>
@@ -303,13 +300,13 @@ function ItemsPage() {
       </div>
 
       {/* ── Dialogs ── */}
-      <AddItemDialog open={addOpen} onClose={() => setAddOpen(false)} />
+      <AddItemDialog open={addOpen} onClose={() => { setAddOpen(false); }} />
 
       {selectedItem && (
         <ItemDetailSheet
           item={selectedItem}
           open
-          onClose={() => setSelectedItem(null)}
+          onClose={() => { setSelectedItem(null); }}
         />
       )}
     </div>

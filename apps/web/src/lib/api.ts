@@ -45,6 +45,11 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
     headers: init?.body !== undefined ? { 'Content-Type': 'application/json' } : {},
   });
 
+  // 204 No Content — body is empty, nothing to parse (e.g. DELETE success).
+  if (res.status === 204) {
+    return undefined as unknown as T;
+  }
+
   const body = (await res.json()) as T | ApiError;
 
   if (!res.ok) {

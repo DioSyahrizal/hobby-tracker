@@ -403,9 +403,9 @@ function ItemFormStep({
           .map((t) => t.trim())
           .filter(Boolean)
       : null,
-    coverUrl: formData.coverUrl ? formData.coverUrl : null,
-    notes: formData.notes ? formData.notes : null,
-    currentProgress: formData.currentProgress ? formData.currentProgress : null,
+    coverUrl: formData.coverUrl !== '' ? (formData.coverUrl ?? null) : null,
+    notes: formData.notes !== '' ? (formData.notes ?? null) : null,
+    currentProgress: formData.currentProgress !== '' ? (formData.currentProgress ?? null) : null,
     externalId: prefill?.externalId ?? null,
     externalSource: prefill?.source ?? null,
     metadata: prefill?.metadata ?? null,

@@ -267,9 +267,9 @@ export function ItemDetailSheet({ item: initialItem, open, onClose }: ItemDetail
           .map((t) => t.trim())
           .filter(Boolean)
       : null,
-    coverUrl: formData.coverUrl ? formData.coverUrl : null,
-    currentProgress: formData.currentProgress ? formData.currentProgress : null,
-    notes: formData.notes ? formData.notes : null,
+    coverUrl: formData.coverUrl !== '' ? (formData.coverUrl ?? null) : null,
+    currentProgress: formData.currentProgress !== '' ? (formData.currentProgress ?? null) : null,
+    notes: formData.notes !== '' ? (formData.notes ?? null) : null,
     rating: formData.rating !== '' && formData.rating != null ? formData.rating : null,
   });
 
