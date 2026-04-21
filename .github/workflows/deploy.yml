@@ -41,6 +41,7 @@ jobs:
             # set -a exports every variable defined after it; set +a stops that.
             set -a && source apps/api/.env && set +a
             pnpm --filter @hobby-track/api db:migrate
+            pnpm --filter @hobby-track/api db:seed
 
             echo "==> Creating logs directory (idempotent)"
             mkdir -p logs
