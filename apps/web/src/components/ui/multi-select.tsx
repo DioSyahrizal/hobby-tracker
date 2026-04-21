@@ -133,7 +133,11 @@ export function MultiSelect({
           </div>
 
           {/* Options list */}
-          <div className="max-h-52 overflow-y-auto">
+          <div
+            className="max-h-52 overflow-y-auto overscroll-contain touch-pan-y"
+            onWheel={(e) => { e.stopPropagation(); }}
+            onTouchMove={(e) => { e.stopPropagation(); }}
+          >
             {filtered.length === 0 && !canCreate && (
               <p className="py-4 text-center text-xs text-muted-foreground">
                 No tags found.
