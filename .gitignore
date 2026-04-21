@@ -28,6 +28,8 @@ Thumbs.db
 *.log
 npm-debug.log*
 pnpm-debug.log*
+logs/*
+!logs/.gitkeep
 
 # TypeScript
 *.tsbuildinfo

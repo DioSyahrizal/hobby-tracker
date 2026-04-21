@@ -351,12 +351,34 @@ GOOGLE_BOOKS_API_KEY=<optional>
 
 ### Phase 9: Deployment
 
-- [ ] Write `ecosystem.config.js` for PM2
-- [ ] Postgres setup on Contabo: create DB, user, grant privileges
-- [ ] Run migrations against prod DB
-- [ ] Build web, deploy to VPS
-- [ ] Configure Cloudflare Tunnel for new hostname
-- [ ] Set up pg_dump cron for daily backup to `/var/backups/backlog`
+#### Automated (CI/CD)
+- [x] `ecosystem.config.cjs` — PM2 config at repo root; app runs on **port 3002**; `NODE_ENV=production` and `PORT=3002` set via `env_production` (takes precedence over `.env`); secrets loaded from `apps/api/.env` via `node --env-file=.env`
+- [x] `.github/workflows/deploy.yml` — GitHub Actions deploys on push to `main`: SSH → `git pull` → `pnpm install` → build web + api → `db:migrate` → `pm2 reload`
+- [x] `apps/api/src/server.ts` — production SPA serving added: registers `@fastify/static` on `apps/web/dist` in production, plus `setNotFoundHandler` returning `index.html` for client-side routing fallback
+- [x] `logs/` directory tracked via `.gitkeep`; log files gitignored
+
+#### GitHub Secrets required (Settings → Secrets → Actions)
+| Secret | Value |
+|---|---|
+| `SSH_HOST` | VPS IP or hostname |
+| `SSH_USER` | SSH username (e.g. `dio`) |
+| `SSH_KEY` | Private SSH key (corresponding public key must be in `~/.ssh/authorized_keys` on VPS) |
+| `DEPLOY_PATH` | Absolute path to repo on VPS (e.g. `/home/dio/hobby-tracker`) |
+
+#### Manual steps (one-time VPS setup)
+- [ ] Postgres: `createdb hobby_track`, create role, grant privileges
+- [ ] Clone repo to `$DEPLOY_PATH`
+- [ ] Create `apps/api/.env` on VPS from `.env.example` (set real secrets; omit PORT/NODE_ENV — managed by PM2)
+- [ ] Run initial migration: `source apps/api/.env && pnpm --filter @hobby-track/api db:migrate`
+- [ ] First start: `pm2 start ecosystem.config.cjs --env production`
+- [ ] Persist across reboots: `pm2 save && pm2 startup` (follow printed instructions)
+- [ ] Add to Cloudflare Tunnel config (`~/.cloudflared/config.yml` or dashboard):
+  ```yaml
+  - hostname: hobby.diosyahrizal.me
+    service: http://localhost:3002
+  ```
+  Then `cloudflared tunnel reload` (or restart the tunnel service)
+- [ ] Set up pg_dump cron for daily backup to `/var/backups/hobby_track`
 - [ ] Smoke test: login, add item from each source, mark progress, run recommendation
 
 ### Phase 10 (future, not v1)

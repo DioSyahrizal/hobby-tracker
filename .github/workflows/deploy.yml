@@ -1,0 +1,51 @@
+name: Deploy
+
+# Triggers on every push to main.
+# On the VPS: git pull → install → build → migrate → pm2 reload.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          # All commands run on the VPS inside the repo directory.
+          # `set -e` aborts on the first failure so a bad build never
+          # replaces a working deployment.
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+
+            echo "==> Pulling latest code"
+            git pull origin main
+
+            echo "==> Installing dependencies"
+            corepack enable
+            pnpm install --frozen-lockfile
+
+            echo "==> Building packages"
+            pnpm --filter @hobby-track/web build
+            pnpm --filter @hobby-track/api build
+
+            echo "==> Running database migrations"
+            # Source the .env so DATABASE_URL is available to drizzle-kit.
+            # set -a exports every variable defined after it; set +a stops that.
+            set -a && source apps/api/.env && set +a
+            pnpm --filter @hobby-track/api db:migrate
+
+            echo "==> Creating logs directory (idempotent)"
+            mkdir -p logs
+
+            echo "==> Reloading PM2 process"
+            pm2 reload ecosystem.config.cjs --env production --update-env
+
+            echo "==> Done"

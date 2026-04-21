@@ -6,6 +6,8 @@ import {
   validatorCompiler,
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { env } from './config/env.js';
 import { AppError } from './lib/errors.js';
 import { UPLOADS_DIR } from './lib/uploads.js';
@@ -17,6 +19,16 @@ import { itemsRoutes } from './routes/items.js';
 import { recommendRoutes } from './routes/recommend.js';
 import { searchRoutes } from './routes/search.js';
 import { settingsRoutes } from './routes/settings.js';
+
+/**
+ * Absolute path to the Vite SPA build output (apps/web/dist).
+ * Computed from this file's compiled location (apps/api/dist/server.js)
+ * so it resolves correctly in both `tsx` dev and compiled production.
+ *
+ *   apps/api/dist/server.js  →  ../../web/dist  →  apps/web/dist
+ */
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const WEB_DIST = path.resolve(__dirname, '..', '..', 'web', 'dist');
 
 export async function buildApp() {
   const app = Fastify({
@@ -75,12 +87,28 @@ export async function buildApp() {
     });
   });
 
-  // Static file serving for uploaded images (/uploads/:filename)
+  // ── Static file serving ────────────────────────────────────────────────────
+
+  if (env.NODE_ENV === 'production') {
+    // 1. Serve the compiled Vite SPA from apps/web/dist.
+    //    decorateReply: true (default) adds reply.sendFile() — needed for the
+    //    SPA fallback below. Must be registered before the uploads root.
+    await app.register(fastifyStatic, {
+      root: WEB_DIST,
+      prefix: '/',
+    });
+  }
+
+  // 2. Serve uploaded images at /uploads/:filename.
+  //    In development: this is the only static registration.
+  //    In production:  decorateReply: false — sendFile already decorated above.
   await app.register(fastifyStatic, {
     root: UPLOADS_DIR,
     prefix: '/uploads/',
-    decorateReply: false,
+    decorateReply: env.NODE_ENV !== 'production',
   });
+
+  // ── API routes ─────────────────────────────────────────────────────────────
 
   await app.register(authPlugin);
   await app.register(multipartPlugin);
@@ -92,6 +120,15 @@ export async function buildApp() {
   await app.register(recommendRoutes, { prefix: '/api/recommend' });
 
   app.get('/api/health', async () => ({ status: 'ok' }));
+
+  // ── SPA fallback (production only) ─────────────────────────────────────────
+  // Any request that didn't match an API route or a static asset gets
+  // index.html so client-side routing works on hard refresh / direct URL.
+  if (env.NODE_ENV === 'production') {
+    app.setNotFoundHandler(async (_req, reply) => {
+      await reply.sendFile('index.html');
+    });
+  }
 
   return app;
 }
