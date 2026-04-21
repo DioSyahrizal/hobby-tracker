@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { moodTagSchema } from './mood-tag.js';
 
 // ── Enums ────────────────────────────────────────────────────────────────────
 
@@ -34,7 +35,7 @@ export const itemSchema = z.object({
   priority: z.number().int().min(1).max(5),
   timeCommitment: timeCommitmentSchema.nullable(),
   mentalLoad: mentalLoadSchema.nullable(),
-  moodTags: z.array(z.string()).nullable(),
+  moodTags: z.array(moodTagSchema),
   coverUrl: z.string().max(2000).nullable(),
   externalId: z.string().max(100).nullable(),
   externalSource: externalSourceSchema.nullable(),
@@ -59,7 +60,7 @@ export const itemCreateSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   timeCommitment: timeCommitmentSchema.nullish(),
   mentalLoad: mentalLoadSchema.nullish(),
-  moodTags: z.array(z.string().min(1).max(50)).max(20).nullish(),
+  moodTagIds: z.array(z.number().int()).max(20).nullish(),
   coverUrl: z.string().max(2000).nullish(),
   externalId: z.string().max(100).nullish(),
   externalSource: externalSourceSchema.nullish(),

@@ -9,8 +9,8 @@
  *   staleness  0–20  (rewards items untouched for a while)
  */
 import type { RecommendRequest, RecommendResult } from '@hobby-track/shared';
-import type { Item as ItemRow } from '../db/schema.js';
 import { serializeItem } from '../lib/serialize.js';
+import type { ItemWithTags } from './items.js';
 
 // ── Level maps ────────────────────────────────────────────────────────────────
 
@@ -33,7 +33,7 @@ const LOAD_SCORE_BY_DIFF = [20, 10, 0] as const;
 
 // ── Scorer ────────────────────────────────────────────────────────────────────
 
-export function scoreItem(row: ItemRow, req: RecommendRequest): RecommendResult {
+export function scoreItem(row: ItemWithTags, req: RecommendRequest): RecommendResult {
   const reasons: string[] = [];
 
   // ── Priority (0–40) ────────────────────────────────────────────────────────
@@ -63,12 +63,12 @@ export function scoreItem(row: ItemRow, req: RecommendRequest): RecommendResult 
 
   // ── Mood fit (0–15) ────────────────────────────────────────────────────────
   let moodFit = 0;
-  if (req.mood && req.mood.length > 0 && row.moodTags && row.moodTags.length > 0) {
+  if (req.mood && req.mood.length > 0 && row.moodTags.length > 0) {
     const userMoods = new Set(req.mood.map((m) => m.toLowerCase()));
-    const matches = row.moodTags.filter((t) => userMoods.has(t.toLowerCase()));
+    const matches = row.moodTags.filter((t) => userMoods.has(t.name.toLowerCase()));
     moodFit = Math.min(matches.length * 5, 15);
     if (moodFit > 0) {
-      reasons.push(`Mood match: ${matches.join(', ')}`);
+      reasons.push(`Mood match: ${matches.map((t) => t.name).join(', ')}`);
     }
   }
 

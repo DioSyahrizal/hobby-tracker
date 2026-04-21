@@ -4,10 +4,10 @@ import { unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import type { FastifyPluginAsyncZod } from 'fastify-type-provider-zod';
 import sharp from 'sharp';
-import { getItem } from '../services/items.js';
+import { eq } from 'drizzle-orm';
 import { db } from '../db/index.js';
 import { items } from '../db/schema.js';
-import { eq } from 'drizzle-orm';
+import { getItem } from '../services/items.js';
 import { serializeItem } from '../lib/serialize.js';
 import { UPLOADS_DIR, UPLOADS_URL_PREFIX } from '../lib/uploads.js';
 import { AppError } from '../lib/errors.js';
@@ -105,12 +105,10 @@ export const coverRoutes: FastifyPluginAsyncZod = async (app) => {
       const newCoverUrl = `${UPLOADS_URL_PREFIX}${filename}`;
 
       // Update DB
-      const [updated] = await db
-        .update(items)
-        .set({ coverUrl: newCoverUrl })
-        .where(eq(items.id, id))
-        .returning();
+      await db.update(items).set({ coverUrl: newCoverUrl }).where(eq(items.id, id));
 
+      // Re-fetch with tags so serializeItem gets the full ItemWithTags shape
+      const updated = await getItem(id);
       if (!updated) {
         // Shouldn't happen (we checked above), but clean up if so
         await unlink(filepath).catch(() => undefined);

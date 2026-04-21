@@ -1,11 +1,8 @@
-import type { Item as ItemRow, Settings as SettingsRow } from '../db/schema.js';
+import type { Settings as SettingsRow } from '../db/schema.js';
+import type { ItemWithTags } from '../services/items.js';
 import type { Item, Settings } from '@hobby-track/shared';
 
-/**
- * Convert a Drizzle items row (with Date objects) into the API-facing
- * Item shape (ISO date strings). The shared `itemSchema` expects strings.
- */
-export function serializeItem(row: ItemRow): Item {
+export function serializeItem(row: ItemWithTags): Item {
   return {
     id: row.id,
     type: row.type,

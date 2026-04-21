@@ -16,6 +16,7 @@ import { multipartPlugin } from './plugins/multipart.js';
 import { authRoutes } from './routes/auth.js';
 import { coverRoutes } from './routes/cover.js';
 import { itemsRoutes } from './routes/items.js';
+import { moodTagsRoutes } from './routes/mood-tags.js';
 import { recommendRoutes } from './routes/recommend.js';
 import { searchRoutes } from './routes/search.js';
 import { settingsRoutes } from './routes/settings.js';
@@ -117,6 +118,7 @@ export async function buildApp() {
   await app.register(coverRoutes, { prefix: '/api/items' });
   await app.register(searchRoutes, { prefix: '/api/search' });
   await app.register(settingsRoutes, { prefix: '/api/settings' });
+  await app.register(moodTagsRoutes, { prefix: '/api/mood-tags' });
   await app.register(recommendRoutes, { prefix: '/api/recommend' });
 
   app.get('/api/health', async () => ({ status: 'ok' }));

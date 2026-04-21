@@ -1,8 +1,65 @@
 import type { ItemCreate, ItemListQuery, ItemType, ItemUpdate } from '@hobby-track/shared';
-import { and, asc, desc, eq, ilike, ne, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, ilike, inArray, ne, sql } from 'drizzle-orm';
 import { db } from '../db/index.js';
-import { items, settings, type Item as ItemRow, type NewItem } from '../db/schema.js';
+import {
+  itemMoodTags,
+  items,
+  moodTags,
+  settings,
+  type Item as ItemRow,
+  type NewItem,
+} from '../db/schema.js';
 import type { ActiveLimitExceededResult, NotFoundResult } from '../lib/errors.js';
+
+// ── ItemWithTags ─────────────────────────────────────────────────────────────
+
+export interface MoodTagRef {
+  id: number;
+  name: string;
+}
+
+/** ItemRow extended with the resolved mood tags from the junction table. */
+export type ItemWithTags = ItemRow & { moodTags: MoodTagRef[] };
+
+// ── Tag helpers ───────────────────────────────────────────────────────────────
+
+async function fetchTagsForItems(
+  itemIds: string[],
+): Promise<Map<string, MoodTagRef[]>> {
+  if (itemIds.length === 0) return new Map();
+
+  const rows = await db
+    .select({
+      itemId: itemMoodTags.itemId,
+      tagId: moodTags.id,
+      tagName: moodTags.name,
+    })
+    .from(itemMoodTags)
+    .innerJoin(moodTags, eq(moodTags.id, itemMoodTags.tagId))
+    .where(inArray(itemMoodTags.itemId, itemIds));
+
+  const map = new Map<string, MoodTagRef[]>();
+  for (const row of rows) {
+    const existing = map.get(row.itemId) ?? [];
+    existing.push({ id: row.tagId, name: row.tagName });
+    map.set(row.itemId, existing);
+  }
+  return map;
+}
+
+async function attachTags(row: ItemRow): Promise<ItemWithTags> {
+  const map = await fetchTagsForItems([row.id]);
+  return { ...row, moodTags: map.get(row.id) ?? [] };
+}
+
+async function setTagsForItem(itemId: string, tagIds: number[]): Promise<void> {
+  await db.delete(itemMoodTags).where(eq(itemMoodTags.itemId, itemId));
+  if (tagIds.length > 0) {
+    await db
+      .insert(itemMoodTags)
+      .values(tagIds.map((tagId) => ({ itemId, tagId })));
+  }
+}
 
 // ── Active-limit helpers ─────────────────────────────────────────────────────
 
@@ -11,14 +68,10 @@ function pickLimit(
   type: ItemType,
 ): number {
   switch (type) {
-    case 'game':
-      return s.activeLimitGame;
-    case 'anime':
-      return s.activeLimitAnime;
-    case 'book':
-      return s.activeLimitBook;
-    case 'gunpla':
-      return s.activeLimitGunpla;
+    case 'game': return s.activeLimitGame;
+    case 'anime': return s.activeLimitAnime;
+    case 'book': return s.activeLimitBook;
+    case 'gunpla': return s.activeLimitGunpla;
   }
 }
 
@@ -27,9 +80,7 @@ async function checkActiveLimit(
   excludeId?: string,
 ): Promise<{ exceeded: boolean; currentActiveCount: number; limit: number }> {
   const [s] = await db.select().from(settings).where(eq(settings.id, 1));
-  if (!s) {
-    throw new Error('Settings row missing — did you run db:seed?');
-  }
+  if (!s) throw new Error('Settings row missing — did you run db:seed?');
   const limit = pickLimit(s, type);
 
   const where = and(
@@ -49,11 +100,11 @@ async function checkActiveLimit(
 // ── Service results ──────────────────────────────────────────────────────────
 
 export type CreateResult =
-  | { kind: 'ok'; item: ItemRow }
+  | { kind: 'ok'; item: ItemWithTags }
   | ActiveLimitExceededResult;
 
 export type UpdateResult =
-  | { kind: 'ok'; item: ItemRow }
+  | { kind: 'ok'; item: ItemWithTags }
   | NotFoundResult
   | ActiveLimitExceededResult;
 
@@ -62,7 +113,7 @@ export type DeleteResult = { kind: 'ok' } | NotFoundResult;
 // ── List ─────────────────────────────────────────────────────────────────────
 
 export interface ListResult {
-  items: ItemRow[];
+  items: ItemWithTags[];
   total: number;
   limit: number;
   offset: number;
@@ -81,14 +132,10 @@ export async function listItems(query: ItemListQuery): Promise<ListResult> {
 
   const orderBy = (() => {
     switch (sort) {
-      case 'priority':
-        return [desc(items.priority), desc(items.createdAt)];
-      case 'title':
-        return [asc(items.title)];
-      case 'last_touched':
-        return [desc(items.lastTouchedAt), desc(items.createdAt)];
-      case 'recent':
-        return [desc(items.createdAt)];
+      case 'priority':   return [desc(items.priority), desc(items.createdAt)];
+      case 'title':      return [asc(items.title)];
+      case 'last_touched': return [desc(items.lastTouchedAt), desc(items.createdAt)];
+      case 'recent':     return [desc(items.createdAt)];
     }
   })();
 
@@ -97,8 +144,11 @@ export async function listItems(query: ItemListQuery): Promise<ListResult> {
     db.select({ count: sql<number>`count(*)::int` }).from(items).where(where),
   ]);
 
+  const tagsMap = await fetchTagsForItems(rows.map((r) => r.id));
+  const itemsWithTags = rows.map((r) => ({ ...r, moodTags: tagsMap.get(r.id) ?? [] }));
+
   return {
-    items: rows,
+    items: itemsWithTags,
     total: totalRow[0]?.count ?? 0,
     limit,
     offset,
@@ -107,9 +157,10 @@ export async function listItems(query: ItemListQuery): Promise<ListResult> {
 
 // ── Get one ──────────────────────────────────────────────────────────────────
 
-export async function getItem(id: string): Promise<ItemRow | null> {
+export async function getItem(id: string): Promise<ItemWithTags | null> {
   const [row] = await db.select().from(items).where(eq(items.id, id));
-  return row ?? null;
+  if (!row) return null;
+  return attachTags(row);
 }
 
 // ── Create ───────────────────────────────────────────────────────────────────
@@ -138,7 +189,6 @@ export async function createItem(input: ItemCreate, force: boolean): Promise<Cre
     priority: input.priority ?? 3,
     timeCommitment: input.timeCommitment ?? null,
     mentalLoad: input.mentalLoad ?? null,
-    moodTags: input.moodTags ?? null,
     coverUrl: input.coverUrl ?? null,
     externalId: input.externalId ?? null,
     externalSource: input.externalSource ?? null,
@@ -151,10 +201,15 @@ export async function createItem(input: ItemCreate, force: boolean): Promise<Cre
 
   const [row] = await db.insert(items).values(insert).returning();
   if (!row) throw new Error('Insert returned no row');
-  return { kind: 'ok', item: row };
+
+  if (input.moodTagIds && input.moodTagIds.length > 0) {
+    await setTagsForItem(row.id, input.moodTagIds);
+  }
+
+  return { kind: 'ok', item: await attachTags(row) };
 }
 
-// ── Update (with side effects) ───────────────────────────────────────────────
+// ── Update ───────────────────────────────────────────────────────────────────
 
 export async function updateItem(
   id: string,
@@ -164,7 +219,6 @@ export async function updateItem(
   const current = await getItem(id);
   if (!current) return { kind: 'not_found' };
 
-  // Active-limit check on transition into 'active'
   if (patch.status === 'active' && current.status !== 'active' && !force) {
     const check = await checkActiveLimit(current.type, id);
     if (check.exceeded) {
@@ -180,7 +234,6 @@ export async function updateItem(
   const now = new Date();
   const updates: Partial<NewItem> = {};
 
-  // Copy patched fields explicitly to avoid leaking unknown keys
   if (patch.type !== undefined) updates.type = patch.type;
   if (patch.title !== undefined) updates.title = patch.title;
   if (patch.status !== undefined) updates.status = patch.status;
@@ -188,7 +241,6 @@ export async function updateItem(
   if (patch.priority !== undefined) updates.priority = patch.priority;
   if (patch.timeCommitment !== undefined) updates.timeCommitment = patch.timeCommitment ?? null;
   if (patch.mentalLoad !== undefined) updates.mentalLoad = patch.mentalLoad ?? null;
-  if (patch.moodTags !== undefined) updates.moodTags = patch.moodTags ?? null;
   if (patch.coverUrl !== undefined) updates.coverUrl = patch.coverUrl ?? null;
   if (patch.externalId !== undefined) updates.externalId = patch.externalId ?? null;
   if (patch.externalSource !== undefined) updates.externalSource = patch.externalSource ?? null;
@@ -196,30 +248,26 @@ export async function updateItem(
   if (patch.notes !== undefined) updates.notes = patch.notes ?? null;
   if (patch.rating !== undefined) updates.rating = patch.rating ?? null;
 
-  // Side effects
   const progressChanged =
     patch.currentProgress !== undefined && patch.currentProgress !== current.currentProgress;
-  if (progressChanged) {
-    updates.lastTouchedAt = now;
-  }
+  if (progressChanged) updates.lastTouchedAt = now;
 
-  const becomingActive = patch.status === 'active' && current.startedAt === null;
-  if (becomingActive) {
-    updates.startedAt = now;
-  }
+  if (patch.status === 'active' && current.startedAt === null) updates.startedAt = now;
+  if (patch.status === 'completed' && current.completedAt === null) updates.completedAt = now;
 
-  const becomingCompleted = patch.status === 'completed' && current.completedAt === null;
-  if (becomingCompleted) {
-    updates.completedAt = now;
+  // Update mood tags if provided (even [] = remove all)
+  if (patch.moodTagIds !== undefined) {
+    await setTagsForItem(id, patch.moodTagIds ?? []);
   }
 
   if (Object.keys(updates).length === 0) {
-    return { kind: 'ok', item: current };
+    // No column changes — still re-attach tags in case they changed
+    return { kind: 'ok', item: await attachTags(current) };
   }
 
   const [row] = await db.update(items).set(updates).where(eq(items.id, id)).returning();
   if (!row) return { kind: 'not_found' };
-  return { kind: 'ok', item: row };
+  return { kind: 'ok', item: await attachTags(row) };
 }
 
 // ── Delete ───────────────────────────────────────────────────────────────────

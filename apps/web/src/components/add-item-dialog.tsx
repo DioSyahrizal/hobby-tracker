@@ -22,7 +22,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { HttpError, createItem, searchQueryOptions } from '../lib/api';
+import { HttpError, createItem, createMoodTagApi, moodTagsQueryOptions, searchQueryOptions } from '../lib/api';
 import { Button } from './ui/button';
 import {
   Dialog,
@@ -36,6 +36,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Skeleton } from './ui/skeleton';
 import { Textarea } from './ui/textarea';
+import { MultiSelect, type SelectOption } from './ui/multi-select';
 
 // ── Debounce hook ─────────────────────────────────────────────────────────────
 
@@ -108,7 +109,6 @@ const itemFormSchema = z.object({
   priority: z.coerce.number().int().min(1).max(5),
   timeCommitment: z.string().optional(),
   mentalLoad: z.string().optional(),
-  moodTags: z.string().optional(),
   coverUrl: z.string().max(2000).optional(),
   notes: z.string().max(10000).optional(),
   currentProgress: z.string().max(1000).optional(),
@@ -350,6 +350,13 @@ function ItemFormStep({
     null,
   );
   const [pendingData, setPendingData] = useState<ItemCreate | null>(null);
+  const [selectedMoodTags, setSelectedMoodTags] = useState<SelectOption[]>([]);
+
+  const { data: moodTagsData } = useQuery(moodTagsQueryOptions);
+  const moodTagOptions: SelectOption[] = (moodTagsData?.tags ?? []).map((t) => ({
+    value: t.id,
+    label: t.name,
+  }));
 
   const {
     register,
@@ -364,7 +371,6 @@ function ItemFormStep({
       coverUrl: prefill?.coverUrl ?? '',
       timeCommitment: '',
       mentalLoad: '',
-      moodTags: '',
       notes: '',
       currentProgress: '',
     },
@@ -397,12 +403,7 @@ function ItemFormStep({
     timeCommitment:
       (formData.timeCommitment as ItemCreate['timeCommitment']) ?? null,
     mentalLoad: (formData.mentalLoad as ItemCreate['mentalLoad']) ?? null,
-    moodTags: formData.moodTags
-      ? formData.moodTags
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean)
-      : null,
+    moodTagIds: selectedMoodTags.map((t) => t.value),
     coverUrl: formData.coverUrl !== '' ? (formData.coverUrl ?? null) : null,
     notes: formData.notes !== '' ? (formData.notes ?? null) : null,
     currentProgress: formData.currentProgress !== '' ? (formData.currentProgress ?? null) : null,
@@ -546,11 +547,17 @@ function ItemFormStep({
 
         {/* Mood tags */}
         <div className="space-y-1.5">
-          <Label htmlFor="add-moods">Mood tags</Label>
-          <Input
-            id="add-moods"
-            placeholder="cozy, intense, story-rich (comma-separated)"
-            {...register('moodTags')}
+          <Label>Mood tags</Label>
+          <MultiSelect
+            options={moodTagOptions}
+            value={selectedMoodTags}
+            onChange={setSelectedMoodTags}
+            onCreateOption={async (name) => {
+              const tag = await createMoodTagApi({ name });
+              void qc.invalidateQueries({ queryKey: ['mood-tags'] });
+              return { value: tag.id, label: tag.name };
+            }}
+            placeholder="Select or create tags…"
           />
         </div>
 

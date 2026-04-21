@@ -1,10 +1,13 @@
 import { queryOptions } from '@tanstack/react-query';
 import type {
+  CreateMoodTag,
   Item,
   ItemCreate,
   ItemListQuery,
   ItemListResponse,
   ItemUpdate,
+  MoodTag,
+  MoodTagsResponse,
   RecommendRequest,
   RecommendResponse,
   SearchResponse,
@@ -165,6 +168,21 @@ export const settingsQueryOptions = queryOptions({
 export async function updateSettings(data: SettingsUpdate): Promise<Settings> {
   return apiFetch<Settings>('/api/settings', {
     method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+// ── Mood tags ────────────────────────────────────────────────────────────────
+
+export const moodTagsQueryOptions = queryOptions({
+  queryKey: ['mood-tags'] as const,
+  queryFn: () => apiFetch<MoodTagsResponse>('/api/mood-tags'),
+  staleTime: 5 * 60 * 1000, // 5 min
+});
+
+export async function createMoodTagApi(data: CreateMoodTag): Promise<MoodTag> {
+  return apiFetch<MoodTag>('/api/mood-tags', {
+    method: 'POST',
     body: JSON.stringify(data),
   });
 }

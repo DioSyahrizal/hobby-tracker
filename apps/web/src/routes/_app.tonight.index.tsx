@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import type { Item, RecommendResult } from '@hobby-track/shared';
 import {
@@ -13,7 +13,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ItemDetailSheet } from '../components/item-detail-sheet';
 import { Button } from '../components/ui/button';
-import { HttpError, getRecommendations, updateItem } from '../lib/api';
+import { HttpError, getRecommendations, moodTagsQueryOptions, updateItem } from '../lib/api';
 
 export const Route = createFileRoute('/_app/tonight/')({
   component: TonightPage,
@@ -33,11 +33,6 @@ const ENERGY_OPTIONS = [
   { value: 'medium', label: 'Medium', sub: 'Can focus' },
   { value: 'heavy', label: 'High', sub: 'Bring it on' },
 ] as const;
-
-const PRESET_MOODS = [
-  'cozy', 'chill', 'intense', 'action',
-  'story', 'hands-on', 'casual', 'epic',
-];
 
 const TYPE_ICON: Record<string, React.FC<{ className?: string }>> = {
   game: Gamepad2,
@@ -96,9 +91,11 @@ function ChipGroup<T extends string>({
 // ── Mood tag toggles ──────────────────────────────────────────────────────────
 
 function MoodPicker({
+  availableTags,
   selected,
   onChange,
 }: {
+  availableTags: string[];
   selected: string[];
   onChange: (tags: string[]) => void;
 }) {
@@ -108,9 +105,13 @@ function MoodPicker({
     );
   };
 
+  if (availableTags.length === 0) {
+    return <p className="text-xs text-muted-foreground">Loading tags…</p>;
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
-      {PRESET_MOODS.map((tag) => {
+      {availableTags.map((tag) => {
         const active = selected.includes(tag);
         return (
           <button
@@ -245,6 +246,10 @@ function TonightPage() {
   const [energy, setEnergy] = useState<'light' | 'medium' | 'heavy'>('medium');
   const [moods, setMoods] = useState<string[]>([]);
 
+  // Fetch all mood tags from the API
+  const { data: moodTagsData } = useQuery(moodTagsQueryOptions);
+  const availableMoods = moodTagsData?.tags.map((t) => t.name) ?? [];
+
   const [results, setResults] = useState<RecommendResult[] | null>(null);
   const [sheetItem, setSheetItem] = useState<Item | null>(null);
 
@@ -321,7 +326,7 @@ function TonightPage() {
           <p className="text-sm font-semibold text-foreground">
             Mood? <span className="font-normal text-muted-foreground">(optional)</span>
           </p>
-          <MoodPicker selected={moods} onChange={setMoods} />
+          <MoodPicker availableTags={availableMoods} selected={moods} onChange={setMoods} />
         </div>
 
         <Button

@@ -5,18 +5,19 @@
  */
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { Item, ItemType, ItemUpdate } from '@hobby-track/shared';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
   Loader2,
   Trash2,
   Upload,
 } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-import { HttpError, deleteItem, updateItem, uploadCover } from '../lib/api';
+import { HttpError, createMoodTagApi, deleteItem, moodTagsQueryOptions, updateItem, uploadCover } from '../lib/api';
+import { MultiSelect, type SelectOption } from './ui/multi-select';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -71,7 +72,6 @@ const editFormSchema = z.object({
   priority: z.coerce.number().int().min(1).max(5),
   timeCommitment: z.string().optional(),
   mentalLoad: z.string().optional(),
-  moodTags: z.string().optional(),
   coverUrl: z.string().max(2000).optional(),
   currentProgress: z.string().max(1000).optional(),
   notes: z.string().max(10000).optional(),
@@ -146,7 +146,6 @@ function itemToFormValues(item: Item): EditFormData {
     priority: item.priority,
     timeCommitment: item.timeCommitment ?? '',
     mentalLoad: item.mentalLoad ?? '',
-    moodTags: item.moodTags?.join(', ') ?? '',
     coverUrl: item.coverUrl ?? '',
     currentProgress: item.currentProgress ?? '',
     notes: item.notes ?? '',
@@ -170,6 +169,11 @@ export function ItemDetailSheet({ item: initialItem, open, onClose }: ItemDetail
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [activeLimitDetails, setActiveLimitDetails] = useState<ActiveLimitDetails | null>(null);
   const [pendingUpdate, setPendingUpdate] = useState<ItemUpdate | null>(null);
+
+  // Mood tags — managed outside RHF because it's a controlled multi-select
+  const [selectedMoodTags, setSelectedMoodTags] = useState<SelectOption[]>(
+    () => item.moodTags.map((t) => ({ value: t.id, label: t.name })),
+  );
 
   // Sync when the parent item reference changes (e.g. after list refetch)
   useEffect(() => {
@@ -198,7 +202,24 @@ export function ItemDetailSheet({ item: initialItem, open, onClose }: ItemDetail
   // Keep form in sync when item changes after save
   useEffect(() => {
     reset(itemToFormValues(item));
+    setSelectedMoodTags(item.moodTags.map((t) => ({ value: t.id, label: t.name })));
   }, [item, reset]);
+
+  // Available mood tags from the API
+  const { data: moodTagsData } = useQuery(moodTagsQueryOptions);
+  const moodTagOptions: SelectOption[] = useMemo(
+    () => moodTagsData?.tags.map((t) => ({ value: t.id, label: t.name })) ?? [],
+    [moodTagsData],
+  );
+
+  // Dirty flag for mood tags (RHF's isDirty doesn't cover external state)
+  const moodTagsDirty = useMemo(() => {
+    const origSet = new Set(item.moodTags.map((t) => t.id));
+    const currSet = new Set(selectedMoodTags.map((t) => t.value));
+    if (origSet.size !== currSet.size) return true;
+    for (const id of origSet) if (!currSet.has(id)) return true;
+    return false;
+  }, [item.moodTags, selectedMoodTags]);
 
   // ── Mutations ──────────────────────────────────────────────────────────────
 
@@ -261,12 +282,7 @@ export function ItemDetailSheet({ item: initialItem, open, onClose }: ItemDetail
     mentalLoad: formData.mentalLoad
       ? (formData.mentalLoad as ItemUpdate['mentalLoad'])
       : null,
-    moodTags: formData.moodTags
-      ? formData.moodTags
-          .split(',')
-          .map((t) => t.trim())
-          .filter(Boolean)
-      : null,
+    moodTagIds: selectedMoodTags.map((t) => t.value),
     coverUrl: formData.coverUrl !== '' ? (formData.coverUrl ?? null) : null,
     currentProgress: formData.currentProgress !== '' ? (formData.currentProgress ?? null) : null,
     notes: formData.notes !== '' ? (formData.notes ?? null) : null,
@@ -291,6 +307,12 @@ export function ItemDetailSheet({ item: initialItem, open, onClose }: ItemDetail
       coverMutation.mutate(file);
       e.target.value = ''; // reset so same file can be re-selected
     }
+  };
+
+  const handleCreateMoodTag = async (label: string): Promise<SelectOption> => {
+    const created = await createMoodTagApi({ name: label });
+    await qc.invalidateQueries({ queryKey: ['mood-tags'] });
+    return { value: created.id, label: created.name };
   };
 
   const isPending =
@@ -437,11 +459,14 @@ export function ItemDetailSheet({ item: initialItem, open, onClose }: ItemDetail
 
             {/* Mood tags */}
             <div className="space-y-1.5">
-              <Label htmlFor="edit-moods">Mood tags</Label>
-              <Input
-                id="edit-moods"
-                placeholder="cozy, intense, story-rich (comma-separated)"
-                {...register('moodTags')}
+              <Label>Mood tags</Label>
+              <MultiSelect
+                options={moodTagOptions}
+                value={selectedMoodTags}
+                onChange={setSelectedMoodTags}
+                onCreateOption={handleCreateMoodTag}
+                placeholder="Select mood tags…"
+                disabled={isPending}
               />
             </div>
 
@@ -540,7 +565,7 @@ export function ItemDetailSheet({ item: initialItem, open, onClose }: ItemDetail
           <Button
             type="submit"
             form="edit-form"
-            disabled={isPending || !isDirty}
+            disabled={isPending || (!isDirty && !moodTagsDirty)}
             className="min-w-[80px]"
           >
             {updateMutation.isPending && (
